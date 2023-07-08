@@ -10,7 +10,7 @@ def src(filename):
 class Cat():
     def __init__(self, x, y):
         img = cv.imread(src("cat1.png"), cv.IMREAD_UNCHANGED)
-        self.img = cv.resize(img, (320,480), interpolation=cv.INTER_NEAREST)
+        self.img = cv.resize(img, (400,600), interpolation=cv.INTER_NEAREST)
         self.x = x
         self.y = y
         self.spd = 10
@@ -54,7 +54,7 @@ class Cat():
         img[ymin:ymax, xmin:xmax] = res
 
 class Room():
-    def __init__(self, roomSize=(3200,2400)):
+    def __init__(self, roomSize=(3000,3000)):
         self.size=roomSize
 
 class Camera():
@@ -62,11 +62,13 @@ class Camera():
     hfov = 62.2 * (np.pi/180)
     imageSize=(640,480)
 
-    def __init__(self, height=800, room=Room()):
+    def __init__(self, height=1800, room=Room()):
         self.theta = 45 * (np.pi / 180) # 0 deg = pointing down
         self.phi = 0 # 0 deg = pointing forward
         self.height=height
         self.room=room
+        self.tiltMin = np.pi/32
+        self.tiltMax = np.arctan2(3,2)
 
     def commandPan(self, phi):
         if phi < -np.pi / 8:
@@ -77,10 +79,10 @@ class Camera():
         self.phi = phi
 
     def commandTilt(self, theta):
-        if theta < np.pi / 8:
-            theta = np.pi / 8
-        if theta > 4*np.pi /8:
-            theta = 4*np.pi /8
+        if theta < self.tiltMin:
+            theta = self.tiltMin
+        if theta > self.tiltMax:
+            theta = self.tiltMax
 
         self.theta = theta
 
