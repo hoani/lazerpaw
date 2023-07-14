@@ -1,5 +1,4 @@
 import cv2 as cv
-import os
 import time
 
 
@@ -19,9 +18,7 @@ while True:
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         _, thres = cv.threshold(gray, 95, 255, cv.THRESH_BINARY)
         cv.imwrite('thres.jpg', thres)
-        os.rename('thres.jpg', '/var/www/html/lazerpaw/thres.jpg')
         cv.imwrite('image.jpg', frame)
-        os.rename('image.jpg', '/var/www/html/lazerpaw/image.jpg')
         end = time.time()
         print(end - start)
         if cv.waitKey(5) & 0xFF==ord('d'):

@@ -19,7 +19,7 @@ Run the following to install dependencies:
 
 ```
 sudo apt update
-sudo apt install pigpio python3-pigpio python3-opencv python3-numpypyth python3-flask
+sudo apt install pigpio python3-pigpio python3-opencv python3-numpy python3-flask
 ```
 
 Run the PiGPIO daemon (for good servo control)
@@ -28,6 +28,15 @@ Run the PiGPIO daemon (for good servo control)
 sudo systemctl enable pigpiod
 sudo systemctl start pigpiod
 ```
+
+### Enable the serial port
+
+* Call `sudo raspi-config`
+* Navigate to the `Interface Options`
+* Select `Serial Port`
+* Select `<NO>` for making a login shell accessible over serial
+* Select `<YES>` for enabling the serial port hardware
+
 
 
 
