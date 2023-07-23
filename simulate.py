@@ -3,9 +3,12 @@ from controller.controller import Controller
 import cv2 as cv
 import numpy as np
 from random import randint
+import server.server as server
 
 
 if __name__ == "__main__":
+    serverThread = server.start()
+
     room = Room()
     camera = Camera()
     sim = Simulation(room=room, camera=camera)
@@ -19,9 +22,13 @@ if __name__ == "__main__":
         capture = sim.update()
         capture = cv.resize(capture, (320,240))
 
+        server.updateVideo(capture)
+
         gray = cv.cvtColor(capture, cv.COLOR_BGR2GRAY)
         _, masked = cv.threshold(gray, 95, 255, cv.THRESH_BINARY)
         cv.imshow('masked', masked)
+
+        server.updateProc(masked)
 
 
         c.update(masked, dt)
