@@ -3,3 +3,28 @@ body {
     color: #6299f3;
     text-align: center;
 }
+
+.full-width {
+    width: 100%;
+}
+
+.video-container {
+    position: relative;
+}
+
+.slider {
+    display: inline-block;
+    position: absolute;
+    z-index: 1;
+    top: 88%;
+    left: 15%;
+    width: 70%
+}
+
+.form-switch {
+    display: inline-block;
+    position: absolute;
+    z-index: 1;
+    top: 2%;
+    left: 4%;
+}

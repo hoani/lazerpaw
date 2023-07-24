@@ -26,12 +26,41 @@ def proc_feed():
 
 @app.route('/button')
 def button():
-    print("button pressed")
+    try:
+        if "start" in request.args.keys():
+            print("start button pressed")
+        if "lazer" in request.args.keys():
+            if request.args.get("lazer") == "on":
+                print("lazer on")
+            else:
+                print("lazer off")
+    except:
+        pass
     return ""
 
 @app.route('/videoclick', methods=["POST"])
 def videoclick():
-    print("video pressed", request.form)
+    print(request.form)
+    x = request.form.get("x", type=int)
+    y = request.form.get("y", type=int)
+    print("video pressed: x =", x, " y =", y)
+    return ""
+
+@app.route('/manual', methods=["POST"])
+def manualclick():
+    if request.form.get("manual") == 'true':
+        print("manual mode")
+    else:
+        print("manual disabled")
+    return ""
+
+@app.route('/threshold', methods=["POST"])
+def thresholdclick():
+    try:
+        value = request.form.get("value")
+        print("threshold value", value)
+    except:
+        pass
     return ""
 
 

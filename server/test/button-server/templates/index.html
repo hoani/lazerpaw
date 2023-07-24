@@ -10,10 +10,26 @@
         integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
         crossorigin="anonymous"></script>
 
-    <script type=text/javascript> $(function() { $("#mybutton").click(function (event) { $.getJSON('/button', { },
-    function(data) { }); return false; }); }); </script>
-    <script type=text/javascript> $(function() { $("#videofeed").click(function (event) { $.post('/videoclick', 
-        JSON.stringify({"x": event.offsetX, "y": event.offsetY})); return false; }); }); </script>
+    <script type=text/javascript>
+    $(function() { $("#startBtn").click(function (event) { $.getJSON('/button?start', { },
+        function(data) { }); return false; }); }); 
+    $(function() { $("#lazerBtn").mousedown(function (event) { $.getJSON('/button?lazer=on', { },
+        function(data) { }); return false; }); }); 
+    $(function() { $("#lazerBtn").mouseup(function (event) { $.getJSON('/button?lazer=off', { },
+        function(data) { }); return false; }); }); 
+    $(function() { $("#videofeed").click(function (event) { $.post('/videoclick', 
+        {"x": event.offsetX, "y": event.offsetY}); return false; }); }); 
+    $(function() { $("#manualSwitch").click(function (event) {
+        e = document.getElementById("manualSwitch");
+        $.post('/manual', 
+        {"manual": e.checked}); 
+    }); });
+    $(function() { $("#threshold").click(function (event) {
+        e = document.getElementById("threshold");
+        $.post('/threshold', 
+        {"value": e.value}); 
+    }); }); 
+    </script>
     <link rel="stylesheet" href='../static/style.css' />
 </head>
 
@@ -21,34 +37,33 @@
     <h1>LazerPaw Live Streaming</h1>
     <div class="container-fluid text-center">
         <div class="row justify-content-md-center">
-            <div class="col-md-auto">
-                <img id="videofeed" src="{{ url_for('video_feed') }}">
-            </div>
-            <div class="col-md-auto">
-                <img src="{{ url_for('proc_feed') }}">
-            </div>
-        </div>
-        <div class="row justify-content-md-center">
-            <div class="col-md-auto">
-                <label for="customRange1" class="form-label">Set Threshold</label>
-                <input type="range" class="form-range" min="0" max="255" id="customRange1">
-            </div>
+            <div class="col-1 justify-content-md-center align-content-md-center">
 
-            <div class="col-md-auto">
-                <button type="button" id="mybutton" class="btn btn-primary">Start</button>
+                <button type="button" id="startBtn" class="btn btn-primary full-width mb-2">Start</button>
+
+                <button type="button" id="lazerBtn" class="btn btn-warning full-width my-2">Test Lazer</button>
+
+                <button type="button" id="captureBtn" class="btn btn-secondary full-width my-2">Capture</button>
+
+                <button type="button" id="shutdownBtn" class="btn btn-danger full-width mt-2">Shutdown</button>
+
             </div>
-            <div class="col-md-auto">
-                <button type="button" id="mybutton" class="btn btn-warning">Test Lazer</button>
+            <div class="col-md-auto video-container">
+                <img id="videofeed" src="{{ url_for('video_feed') }}">
+                <div class="col-md-auto form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="manualSwitch">
+                    <label class="form-check-label" for="manualSwitch">Manual</label>
+                </div>
             </div>
-            <div class="col-md-auto">
-                <button type="button" id="mybutton" class="btn btn-secondary">Capture Photo</button>
+            <div class="col-md-auto video-container">
+                <img src="{{ url_for('proc_feed') }}">
+                <div class="slider">
+                    <label for="threshold" class="form-label">Set Threshold</label>
+                    <input type="range" class="form-range" min="10" max="245" id="threshold">
+                </div>
             </div>
-            <div class="col-md-auto">
-                <button type="button" id="mybutton" class="btn btn-danger">Shutdown</button>
-            </div>
-            <div class="col-md-auto form-check form-switch">
-                <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-                <label class="form-check-label" for="flexSwitchCheckDefault">Manual</label>
+            <div class="col-1">
+                <div class="full-width"></div>
             </div>
         </div>
     </div>
