@@ -14,13 +14,13 @@ def index():
     
 @app.route('/video_feed')
 def video_feed():
-    """Video streaming route. Put this in the src attribute of an img tag."""
+    if "once" in request.args.keys():
+        return Response(gen_single(videoQueue),mimetype='image/jpeg; boundary=frame')
     return Response(gen(videoQueue),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/proc_feed')
 def proc_feed():
-    """Video streaming route. Put this in the src attribute of an img tag."""
     return Response(gen(procQueue),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -67,13 +67,20 @@ def thresholdclick():
             
 def gen(q):
     while True:
-        frame = q.get(block=True, timeout=None)
-        ok, frameJpeg = cv.imencode(".jpeg", frame)
-        if ok:
+        jpegBytes = gen_single(q)
+        if jpegBytes is not None:
             yield(b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + 
-                frameJpeg.tobytes() + 
+                jpegBytes + 
                 b'\r\n')
+            
+def gen_single(q):
+    frame = q.get(block=True, timeout=None)
+    ok, frameJpeg = cv.imencode(".jpeg", frame)
+    if ok:
+        return frameJpeg.tobytes()
+    return None
+            
                 
 def run():
     app.run(host='0.0.0.0', port =9090, debug=False, threaded=True)

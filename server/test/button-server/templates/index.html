@@ -13,6 +13,8 @@
     <script type=text/javascript>
     $(function() { $("#startBtn").click(function (event) { $.getJSON('/button?start', { },
         function(data) { }); return false; }); }); 
+    $(function() { $("#stopBtn").click(function (event) { $.getJSON('/button?stop', { },
+        function(data) { }); return false; }); }); 
     $(function() { $("#lazerBtn").mousedown(function (event) { $.getJSON('/button?lazer=on', { },
         function(data) { }); return false; }); }); 
     $(function() { $("#lazerBtn").mouseup(function (event) { $.getJSON('/button?lazer=off', { },
@@ -36,18 +38,27 @@
 <body>
     <h1>LazerPaw Live Streaming</h1>
     <div class="container-fluid text-center">
-        <div class="row justify-content-md-center">
-            <div class="col-1 justify-content-md-center align-content-md-center">
-
-                <button type="button" id="startBtn" class="btn btn-primary full-width mb-2">Start</button>
-
-                <button type="button" id="lazerBtn" class="btn btn-warning full-width my-2">Test Lazer</button>
-
-                <button type="button" id="captureBtn" class="btn btn-secondary full-width my-2">Capture</button>
-
-                <button type="button" id="shutdownBtn" class="btn btn-danger full-width mt-2">Shutdown</button>
-
+        <div class="row justify-content-md-center my-2">
+            <div class="col-1 ">
+                <button type="button" id="startBtn" class="btn btn-success full-width">Start</button>
             </div>
+            <div class="col-1 ">
+                <button type="button" id="stopBtn" class="btn btn-primary full-width">Stop</button>
+            </div>
+            <div class="col-1">
+                <button type="button" id="lazerBtn" class="btn btn-warning full-width">Test Lazer</button>
+            </div>
+            <div class="col-1">
+                <a href="{{ url_for('video_feed') }}?once" target="_blank">
+                    <button type="button" id="captureBtn" class="btn btn-secondary full-width">Capture</button>
+                </a>
+            </div>
+            <div class="col-1 justify-self-end">
+                <button type="button" id="shutdownBtn" class="btn btn-danger full-width">Shutdown</button>
+            </div>
+        </div>
+
+        <div class="row justify-content-md-center">
             <div class="col-md-auto video-container">
                 <img id="videofeed" src="{{ url_for('video_feed') }}">
                 <div class="col-md-auto form-check form-switch">
@@ -61,9 +72,6 @@
                     <label for="threshold" class="form-label">Set Threshold</label>
                     <input type="range" class="form-range" min="10" max="245" id="threshold">
                 </div>
-            </div>
-            <div class="col-1">
-                <div class="full-width"></div>
             </div>
         </div>
     </div>
