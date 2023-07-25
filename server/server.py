@@ -1,12 +1,17 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, request
 import cv2 as cv
 import queue
 from threading import Thread
+from typing import Callable
 
 
 app = Flask(__name__)
 videoQueue = queue.Queue(maxsize=1)
 procQueue = queue.Queue(maxsize=1)
+
+startCb = lambda _: _
+stopCb = lambda _: _
+lazerTesterCb = lambda _: _
 
 @app.route('/')
 def index():
@@ -14,38 +19,77 @@ def index():
     
 @app.route('/video_feed')
 def video_feed():
-    """Video streaming route. Put this in the src attribute of an img tag."""
-    return Response(get_video(videoQueue),
+    if "once" in request.args.keys():
+        return Response(gen_single(videoQueue),mimetype='image/jpeg; boundary=frame')
+    return Response(gen(videoQueue),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/proc_feed')
 def proc_feed():
-    """Video streaming route. Put this in the src attribute of an img tag."""
     return Response(gen(procQueue),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-def get_video(q):
-    while True:
-        frame = q.get(block=True, timeout=None)
-        cv.circle(frame, (int(frame.shape[1]/2), int(frame.shape[0]/2)), int(frame.shape[1]/128), (0,255,255), thickness=1)
-        ok, frameJpeg = cv.imencode(".jpeg", frame)
-        if ok:
-            yield(b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + 
-                frameJpeg.tobytes() + 
-                b'\r\n')
+@app.route('/button')
+def button():
+    try:
+        if "start" in request.args.keys():
+            print("start triggered")
+            startCb()
+        if "stop" in request.args.keys():
+            print("stop triggered")
+            stopCb()
+        if "lazer" in request.args.keys():
+            if request.args.get("lazer") == "on":
+                print("lazer on")
+                lazerTesterCb(True)
+            else:
+                print("lazer off")
+                lazerTesterCb(False)
+    except:
+        pass
+    return ""
+
+@app.route('/videoclick', methods=["POST"])
+def video_click():
+    print(request.form)
+    x = request.form.get("x", type=int)
+    y = request.form.get("y", type=int)
+    print("video pressed: x =", x, " y =", y)
+    return ""
+
+@app.route('/manual', methods=["POST"])
+def manual_click():
+    if request.form.get("manual") == 'true':
+        print("manual mode")
+    else:
+        print("manual disabled")
+    return ""
+
+@app.route('/threshold', methods=["POST"])
+def threshold_click():
+    try:
+        value = request.form.get("value")
+        print("threshold value", value)
+    except:
+        pass
+    return ""
             
 def gen(q):
     while True:
-        frame = q.get(block=True, timeout=None)
-        ok, frameJpeg = cv.imencode(".jpeg", frame)
-        if ok:
+        jpegBytes = gen_single(q)
+        if jpegBytes is not None:
             yield(b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + 
-                frameJpeg.tobytes() + 
+                jpegBytes + 
                 b'\r\n')
-                
-
+            
+def gen_single(q):
+    frame = q.get(block=True, timeout=None)
+    ok, frameJpeg = cv.imencode(".jpeg", frame)
+    if ok:
+        return frameJpeg.tobytes()
+    return None
+            
 def start():
     def run():
         app.run(host='0.0.0.0', port =9090, debug=False, threaded=True)
@@ -53,18 +97,30 @@ def start():
     flaskThread.start()
     return flaskThread
 
-def updateVideo(frame):
-    updateQueue(videoQueue, frame.copy())
+def update_video(frame):
+    update_queue(videoQueue, frame.copy())
 
-def updateProc(frame):
-    updateQueue(procQueue, frame.copy())
+def update_proc(frame):
+    update_queue(procQueue, frame.copy())
 
-def updateQueue(queue, item):
+def update_queue(queue, item):
     try:
         queue.get_nowait()
     except:
         pass
     queue.put(item)
+
+def set_start_cb(fn: Callable[[None],None]):
+    global startCb
+    startCb = fn
+
+def set_stop_cb(fn: Callable[[None],None]):
+    global stopCb
+    stopCb = fn
+
+def set_lazer_tester_cb(fn: Callable[[bool],None]):
+    global lazerTesterCb
+    lazerTesterCb = fn
 
 
 if __name__ == '__main__':
@@ -81,13 +137,10 @@ if __name__ == '__main__':
             isTrue, frame = cap.read()
             if not isTrue:
                 break
-            updateVideo(frame)
+            update_video(frame)
 
             grey = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-            updateProc(grey)
+            update_proc(grey)
     except KeyboardInterrupt:
         cap.release()
         pass
-
-
-
