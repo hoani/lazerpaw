@@ -14,6 +14,8 @@ stopCb = lambda _: _
 lazerTesterCb = lambda _: _
 shutdownCb = lambda _: _
 thresholdCb = lambda _: _
+manualEnCb = lambda _: _
+manualCmdCb = lambda _a, _b, _c, _d: None
 
 @app.route('/')
 def index():
@@ -59,14 +61,19 @@ def video_click():
     print(request.form)
     x = request.form.get("x", type=int)
     y = request.form.get("y", type=int)
+    w = request.form.get("w", type=int)
+    h = request.form.get("h", type=int)
     print("video pressed: x =", x, " y =", y)
+    manualCmdCb(x, y, w, h)
     return ""
 
 @app.route('/manual', methods=["POST"])
 def manual_click():
     if request.form.get("manual") == 'true':
+        manualEnCb(True)
         print("manual mode")
     else:
+        manualEnCb(False)
         print("manual disabled")
     return ""
 
@@ -135,6 +142,14 @@ def set_shutdown_cb(fn: Callable[[None],None]):
 def set_threshold_cb(fn: Callable[[int],None]):
     global thresholdCb
     thresholdCb = fn
+
+def set_manual_enabled_cb(fn: Callable[[bool],None]):
+    global manualEnCb
+    manualEnCb = fn
+
+def set_manual_command_cb(fn: Callable[[int, int, int, int],None]):
+    global manualCmdCb
+    manualCmdCb = fn
 
 
 if __name__ == '__main__':

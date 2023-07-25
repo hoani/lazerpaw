@@ -38,7 +38,7 @@ class LazerTester:
         self.mu = Lock()
         self.state = False
 
-    def testState(self):
+    def get(self):
         state = False
         if self.mu.acquire(timeout=dt):
             state = self.state
@@ -46,7 +46,7 @@ class LazerTester:
         
         return state
     
-    def setState(self, state):
+    def set(self, state):
         self.mu.acquire()
         self.state = state
         self.mu.release()
@@ -69,22 +69,71 @@ class Threshold:
         self.value = value
         self.mu.release()
 
+class ManualMode:
+    def __init__(self, pitchRange, yawRange):
+        self.mu = Lock()
+        self.enabled = False
+        self.deltaPitch = 0
+        self.deltaYaw = 0
+        self.pitchRange = pitchRange
+        self.yawRange = yawRange
+
+    def set_enabled(self, enabled):
+        self.mu.acquire()
+        self.enabled = enabled
+        self.mu.release()
+    
+    def set_cmd(self, x, y, w, h):
+        if not self.get_enabled():
+            return
+        
+        if w == 0 or h == 0:
+            return
+        
+        deltaPitch = self.pitchRange*(x - w/2)/w
+        deltaYaw = self.yawRange*(-(y - h/2))/h
+        print("setting delta pitch", deltaPitch, "delta yaw", deltaYaw)
+        self.mu.acquire()
+        self.deltaPitch = deltaPitch
+        self.deltaYaw = deltaYaw
+        self.mu.release()
+
+    def get_enabled(self):
+        self.mu.acquire()
+        result = self.enabled
+        self.mu.release()
+        return result
+
+    def get_delta_pitch(self):
+        self.mu.acquire()
+        result = self.deltaPitch
+        self.deltaPitch = 0
+        self.mu.release()
+        return result
+    
+    def get_delta_yaw(self):
+        self.mu.acquire()
+        result = self.deltaYaw
+        self.deltaYaw = 0
+        self.mu.release()
+        return result
+
 class Shutdown:
     def __init__(self):
         self.mu = Lock()
-        self.state = False
+        self.value = False
 
-    def getState(self):
-        state = False
+    def get(self):
+        value = False
         if self.mu.acquire(timeout=dt):
-            state = self.state
+            value = self.value
             self.mu.release()
         
-        return state
+        return value
     
-    def shutdown(self):
+    def set(self):
         self.mu.acquire()
-        self.state = True
+        self.value = True
         self.mu.release()
 
 
@@ -101,17 +150,21 @@ if __name__ == "__main__":
     server.set_stop_cb(c.stop)
 
     lazerTester = LazerTester()
-    server.set_lazer_tester_cb(lazerTester.setState)
+    server.set_lazer_tester_cb(lazerTester.set)
 
     shutdown = Shutdown()
-    server.set_shutdown_cb(shutdown.shutdown)
+    server.set_shutdown_cb(shutdown.set)
 
     threshold = Threshold()
     server.set_threshold_cb(threshold.set)
 
+    manual = ManualMode(camera.hfov, camera.vfov)
+    server.set_manual_enabled_cb(manual.set_enabled)
+    server.set_manual_command_cb(manual.set_cmd)
+
     dt = 0.05
 
-    while shutdown.getState() is False:
+    while shutdown.get() is False:
         capture = sim.update()
         capture = cv.resize(capture, (640,480))
 
@@ -131,7 +184,10 @@ if __name__ == "__main__":
             camera.commandPan(ctl.yaw())
             camera.commandTilt(ctl.pitch())
         else:
-            sim.lazerOn = lazerTester.testState()
+            if manual.get_enabled():
+                camera.incrementPan(manual.get_delta_pitch())
+                camera.incrementTilt(manual.get_delta_yaw())
+            sim.lazerOn = lazerTester.get()
 
         if cv.waitKey(int(100*dt)) != -1:
             break

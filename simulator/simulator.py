@@ -180,7 +180,7 @@ class Simulation():
             c.draw(self.floor)
 
 
-        print('theta: {:.1f}, phi: {:.1f}'.format(180*self.camera.theta/np.pi, 180*self.camera.phi/np.pi))
+        # print('theta: {:.1f}, phi: {:.1f}'.format(180*self.camera.theta/np.pi, 180*self.camera.phi/np.pi))
 
         result = self.camera.takeFrame(self.floor, matrix)
         

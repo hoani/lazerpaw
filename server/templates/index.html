@@ -21,8 +21,11 @@
         function(data) { }); return false; }); });
     $(function() { $("#shutdownBtn").click(function (event) { $.getJSON('/button?shutdown', { },
         function(data) { }); return false; }); }); 
-    $(function() { $("#videofeed").click(function (event) { $.post('/videoclick', 
-        {"x": event.offsetX, "y": event.offsetY}); return false; }); }); 
+    $(function() { $("#videofeed").click(function (event) { 
+        e = document.getElementById("videofeed");
+        $.post('/videoclick',
+        {"x": event.offsetX, "y": event.offsetY, "w": e.width, "h": e.height}); 
+    }); }); 
     $(function() { $("#manualSwitch").click(function (event) {
         e = document.getElementById("manualSwitch");
         $.post('/manual', 
