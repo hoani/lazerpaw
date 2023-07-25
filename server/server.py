@@ -12,6 +12,8 @@ procQueue = queue.Queue(maxsize=1)
 startCb = lambda _: _
 stopCb = lambda _: _
 lazerTesterCb = lambda _: _
+shutdownCb = lambda _: _
+thresholdCb = lambda _: _
 
 @app.route('/')
 def index():
@@ -45,6 +47,9 @@ def button():
             else:
                 print("lazer off")
                 lazerTesterCb(False)
+        if "shutdown" in request.args.keys():
+            print("shutdown triggered")
+            shutdownCb()
     except:
         pass
     return ""
@@ -70,6 +75,7 @@ def threshold_click():
     try:
         value = request.form.get("value")
         print("threshold value", value)
+        thresholdCb(int(value))
     except:
         pass
     return ""
@@ -121,6 +127,14 @@ def set_stop_cb(fn: Callable[[None],None]):
 def set_lazer_tester_cb(fn: Callable[[bool],None]):
     global lazerTesterCb
     lazerTesterCb = fn
+
+def set_shutdown_cb(fn: Callable[[None],None]):
+    global shutdownCb
+    shutdownCb = fn
+
+def set_threshold_cb(fn: Callable[[int],None]):
+    global thresholdCb
+    thresholdCb = fn
 
 
 if __name__ == '__main__':

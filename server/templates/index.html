@@ -14,10 +14,12 @@
     $(function() { $("#startBtn").click(function (event) { $.getJSON('/button?start', { },
         function(data) { }); return false; }); }); 
     $(function() { $("#stopBtn").click(function (event) { $.getJSON('/button?stop', { },
-        function(data) { }); return false; }); }); 
+        function(data) { }); return false; }); });
     $(function() { $("#lazerBtn").mousedown(function (event) { $.getJSON('/button?lazer=on', { },
         function(data) { }); return false; }); }); 
     $(function() { $("#lazerBtn").mouseup(function (event) { $.getJSON('/button?lazer=off', { },
+        function(data) { }); return false; }); });
+    $(function() { $("#shutdownBtn").click(function (event) { $.getJSON('/button?shutdown', { },
         function(data) { }); return false; }); }); 
     $(function() { $("#videofeed").click(function (event) { $.post('/videoclick', 
         {"x": event.offsetX, "y": event.offsetY}); return false; }); }); 

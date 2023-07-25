@@ -184,8 +184,6 @@ class Simulation():
 
         result = self.camera.takeFrame(self.floor, matrix)
         
-        cv.imshow('Transformed', result)
-
         ones = np.ones((Camera.imageSize[1], Camera.imageSize[0]), dtype='uint8')
         light = cv.merge([0*ones,255*ones,255*ones])
         cameraArea = cv.warpPerspective(light, invMatrix, self.room.size)

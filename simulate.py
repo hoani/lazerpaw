@@ -51,6 +51,42 @@ class LazerTester:
         self.state = state
         self.mu.release()
 
+class Threshold:
+    def __init__(self):
+        self.mu = Lock()
+        self.value = 95
+
+    def get(self):
+        value = 95
+        if self.mu.acquire(timeout=dt):
+            value = self.value
+            self.mu.release()
+        
+        return value
+    
+    def set(self, value):
+        self.mu.acquire()
+        self.value = value
+        self.mu.release()
+
+class Shutdown:
+    def __init__(self):
+        self.mu = Lock()
+        self.state = False
+
+    def getState(self):
+        state = False
+        if self.mu.acquire(timeout=dt):
+            state = self.state
+            self.mu.release()
+        
+        return state
+    
+    def shutdown(self):
+        self.mu.acquire()
+        self.state = True
+        self.mu.release()
+
 
 if __name__ == "__main__":
     serverThread = server.start()
@@ -67,18 +103,23 @@ if __name__ == "__main__":
     lazerTester = LazerTester()
     server.set_lazer_tester_cb(lazerTester.setState)
 
+    shutdown = Shutdown()
+    server.set_shutdown_cb(shutdown.shutdown)
+
+    threshold = Threshold()
+    server.set_threshold_cb(threshold.set)
+
     dt = 0.05
 
-    while True:
+    while shutdown.getState() is False:
         capture = sim.update()
         capture = cv.resize(capture, (640,480))
 
         server.update_video(capture)
 
         gray = cv.cvtColor(capture, cv.COLOR_BGR2GRAY)
-        _, masked = cv.threshold(gray, 95, 255, cv.THRESH_BINARY)
+        _, masked = cv.threshold(gray, threshold.get(), 255, cv.THRESH_BINARY)
         masked = cv.resize(masked, (320,240))
-        cv.imshow('masked', masked)
 
         server.update_proc(masked)
 
