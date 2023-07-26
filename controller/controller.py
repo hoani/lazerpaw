@@ -10,7 +10,7 @@ class Controller:
         self.ddy = 0
         self.kf = 1.5 # Friction
         self.kr = 10 # Repulsion
-        self.radius = 60
+        self.radius = 30
         self.lazerCooldown = 10
 
         self.xmin = xbounds[0]
@@ -39,6 +39,10 @@ class Controller:
         fx, fy = 0, 0
         shape = img.shape
         x0, y0 = img.shape[1]//2, img.shape[0]//2
+        r2 = self.radius**2
+
+        ## TODO: This loop requires optimization.
+        # This is the cause of the lower frame rate
         for i in range(shape[1]):
             x = i-x0
             for j in range(shape[0]):
@@ -49,7 +53,7 @@ class Controller:
                         lazerSafe = False
                     else:
                         d2 = x**2 + y**2
-                        if d2 < self.radius**2:
+                        if d2 < r2:
                             fx += -x/d2
                             fy += -y/d2
         

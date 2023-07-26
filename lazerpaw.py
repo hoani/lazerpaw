@@ -7,6 +7,7 @@ from threading import Lock
 from hardware.camera import Camera
 from hardware.servo import PanTilt
 from hardware.lazer import Lazer
+import time
 
 class ControlRoutine:
     def __init__(self, pan, tilt, pan_boundary, tilt_boundary):
@@ -145,13 +146,20 @@ if __name__ == "__main__":
     server.set_manual_enabled_cb(manual.set_enabled)
     server.set_manual_command_cb(manual.set_cmd)
 
-    dt = 0.05 ## TODO: make this more dynamic
+    dt = 0
 
+    last_s = time.time()
     i = 0
     for capture in camera.frame():
         if shutdown.get():
             # TODO: make shutdown
             break
+        if dt == 0:
+            dt = 1/30 # Handle first update.
+        else:
+            now_s = time.time()
+            dt = now_s - last_s
+            last_s = now_s
 
         masked = threshold.process_frame(capture)
         server.update_video(capture)
@@ -170,6 +178,11 @@ if __name__ == "__main__":
             lazer.set(lazerTester.get())
 
         pantilt.update(dt)
+        print(
+            'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
+            'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
+            'Target - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.yaw.target, pantilt.pitch.target)
+        )
     
     camera.release()
     exit(0)

@@ -11,7 +11,7 @@ class ThresholdProcessor:
 
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         _, masked = cv.threshold(gray, threshold, 255, cv.THRESH_BINARY)
-        masked = cv.resize(masked, (80,60))
+        masked = cv.resize(masked, (40,30))
         
         return masked
 
