@@ -1,7 +1,7 @@
 import numpy as np
 
 class Controller:
-    def __init__(self, x0, y0):
+    def __init__(self, x0, y0, xbounds, ybounds):
         self.x = x0
         self.y = y0
         self.dx = 0
@@ -13,9 +13,25 @@ class Controller:
         self.radius = 60
         self.lazerCooldown = 10
 
+        self.xmin = xbounds[0]
+        self.xmax = xbounds[1]
+
+        self.ymin = ybounds[0]
+        self.ymax = ybounds[1]
+
         self.lazerOn = False
 
         return
+
+    def apply_bounds(self):
+        if self.x < self.xmin:
+            self.x = self.xmin
+        if self.x > self.xmax:
+            self.x = self.xmax
+        if self.y < self.ymin:
+            self.y = self.ymin
+        if self.y > self.ymax:
+            self.y = self.ymax
 
     def update(self, img: np.ndarray, dt: float):
 
@@ -47,10 +63,10 @@ class Controller:
         # dx = self.kr * fx 
         # dy = self.kr * fy
 
-        self.x = self.x + dt * (self.dx + dx)/2 
-        self.y = self.y + dt * (self.dy + dy)/2
+        self.x = self.x - dt * (self.dx + dx)/2 
+        self.y = self.y - dt * (self.dy + dy)/2
 
-        print('Controller command: theta: {:.1f}, phi: {:.1f}'.format(self.x, self.y))
+        self.apply_bounds()
 
         if lazerSafe == False:
             self.lazerCooldown = 10
@@ -61,10 +77,10 @@ class Controller:
                 self.lazerOn = True
 
     def yaw(self):
-        return self.x * np.pi /180
+        return self.x
     
     def pitch(self):
-        return self.y * np.pi /180
+        return self.y
     
     def lazer(self):
         return self.lazerOn

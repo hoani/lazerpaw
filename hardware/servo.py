@@ -49,6 +49,9 @@ class Control:
             else:
                 self.servo.angle += np.sign(delta) * slew
 
+    def boundary(self):
+        return (self.servo.min_angle, self.servo.max_angle)
+
 class PanTilt:
     def __init__(self, slewrate = 180/2):
         factory = PiGPIOFactory()
@@ -65,11 +68,23 @@ class PanTilt:
     def tilt(self, angle):
         self.pitch.angle(angle)
 
+    def get_pan(self):
+        return self.yaw.servo.angle
+
+    def get_tilt(self):
+        return self.pitch.servo.angle
+
     def increment_pan(self, delta):
         self.yaw.increment(delta)
 
     def increment_tilt(self, delta):
         self.pitch.increment(delta)
+
+    def get_pan_boundary(self):
+        return self.yaw.boundary()
+
+    def get_tilt_boundary(self):
+        return self.pitch.boundary()
 
 if __name__ == "__main__":
     pantilt = PanTilt()

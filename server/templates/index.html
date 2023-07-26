@@ -71,8 +71,8 @@
                     <label class="form-check-label" for="manualSwitch">Manual</label>
                 </div>
             </div>
-            <div class="col-md-auto video-container">
-                <img src="{{ url_for('proc_feed') }}">
+            <div class="col-md-auto video-container" style="height:100%">
+                <img src="{{ url_for('proc_feed') }}" style="height:100%">
                 <div class="slider">
                     <label for="threshold" class="form-label">Set Threshold</label>
                     <input type="range" class="form-range" min="10" max="245" id="threshold">

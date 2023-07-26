@@ -1,16 +1,17 @@
-from simulator.simulator import Room, Camera, Cat, Simulation
 from controller.controller import Controller
+from controller.vision import ThresholdProcessor
 import cv2 as cv
 import numpy as np
-from random import randint
 import server.server as server
 from threading import Lock
+from hardware.camera import Camera
 from hardware.servo import PanTilt
+from hardware.lazer import Lazer
 
 class ControlRoutine:
-    def __init__(self, phi, theta):
+    def __init__(self, pan, tilt, pan_boundary, tilt_boundary):
         self.mu = Lock()
-        self.c = Controller(phi, theta)
+        self.c = Controller(pan, tilt, pan_boundary, tilt_boundary)
         self.running = False
 
     def update(self, masked, dt):
@@ -52,24 +53,6 @@ class LazerTester:
         self.state = state
         self.mu.release()
 
-class Threshold:
-    def __init__(self):
-        self.mu = Lock()
-        self.value = 95
-
-    def get(self):
-        value = 95
-        if self.mu.acquire(timeout=dt):
-            value = self.value
-            self.mu.release()
-        
-        return value
-    
-    def set(self, value):
-        self.mu.acquire()
-        self.value = value
-        self.mu.release()
-
 class ManualMode:
     def __init__(self, pitchRange, yawRange):
         self.mu = Lock()
@@ -91,8 +74,8 @@ class ManualMode:
         if w == 0 or h == 0:
             return
         
-        deltaPitch = self.pitchRange*(x - w/2)/w
-        deltaYaw = self.yawRange*(-(y - h/2))/h
+        deltaPitch = self.pitchRange*((y - h/2))/h
+        deltaYaw = self.yawRange*(-(x - w/2))/w
         print("setting delta pitch", deltaPitch, "delta yaw", deltaYaw)
         self.mu.acquire()
         self.deltaPitch = deltaPitch
@@ -142,14 +125,10 @@ if __name__ == "__main__":
     serverThread = server.start()
 
     pantilt = PanTilt()
-    camera = cv.VideoCapture(0)
-
-    cap.set(cv.CAP_PROP_FRAME_WIDTH, 160)
-    cap.set(cv.CAP_PROP_FRAME_HEIGHT, 120)
-
     camera = Camera()
+    lazer = Lazer()
     
-    c = ControlRoutine(camera.phi*180/np.pi, camera.theta*180/np.pi)
+    c = ControlRoutine(pantilt.get_pan(), pantilt.get_tilt(), pantilt.get_pan_boundary(), pantilt.get_tilt_boundary())
     server.set_start_cb(c.start)
     server.set_stop_cb(c.stop)
 
@@ -159,41 +138,38 @@ if __name__ == "__main__":
     shutdown = Shutdown()
     server.set_shutdown_cb(shutdown.set)
 
-    threshold = Threshold()
-    server.set_threshold_cb(threshold.set)
+    threshold = ThresholdProcessor()
+    server.set_threshold_cb(threshold.set_threshold)
 
-    manual = ManualMode(camera.hfov, camera.vfov)
+    manual = ManualMode(camera.hfov*180/np.pi, camera.vfov*180/np.pi)
     server.set_manual_enabled_cb(manual.set_enabled)
     server.set_manual_command_cb(manual.set_cmd)
 
-    dt = 0.05
+    dt = 0.05 ## TODO: make this more dynamic
 
-    while shutdown.get() is False:
-        capture = sim.update()
-        capture = cv.resize(capture, (640,480))
+    i = 0
+    for capture in camera.frame():
+        if shutdown.get():
+            # TODO: make shutdown
+            break
 
+        masked = threshold.process_frame(capture)
         server.update_video(capture)
-
-        gray = cv.cvtColor(capture, cv.COLOR_BGR2GRAY)
-        _, masked = cv.threshold(gray, threshold.get(), 255, cv.THRESH_BINARY)
-        masked = cv.resize(masked, (320,240))
-
         server.update_proc(masked)
-
 
         ctl = c.update(masked, dt)
         if ctl is not None:
-            sim.lazerOn = ctl.lazer()
+            lazer.set(ctl.lazer())
 
             pantilt.pan(ctl.yaw())
             pantilt.tilt(ctl.pitch())
         else:
             if manual.get_enabled():
-                pantilt.increment_pan(manual.get_delta_pitch())
-                pantilt.increment_tilt(manual.get_delta_yaw())
-            sim.lazerOn = lazerTester.get()
+                pantilt.increment_pan(manual.get_delta_yaw())
+                pantilt.increment_tilt(manual.get_delta_pitch())
+            lazer.set(lazerTester.get())
 
-        if cv.waitKey(int(100*dt)) != -1:
-            break
-
+        pantilt.update(dt)
+    
+    camera.release()
     exit(0)

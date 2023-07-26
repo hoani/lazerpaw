@@ -181,8 +181,8 @@ if __name__ == "__main__":
         if ctl is not None:
             sim.lazerOn = ctl.lazer()
 
-            camera.commandPan(ctl.yaw())
-            camera.commandTilt(ctl.pitch())
+            camera.commandPan(ctl.yaw() *np.pi/180)
+            camera.commandTilt(ctl.pitch()*np.pi/180)
         else:
             if manual.get_enabled():
                 camera.incrementPan(manual.get_delta_pitch())
