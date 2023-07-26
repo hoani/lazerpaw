@@ -28,3 +28,16 @@ body {
     top: 2%;
     left: 4%;
 }
+
+img #proc-img {
+    -ms-interpolation-mode: nearest-neighbor;
+    /* Firefox */
+    image-rendering: optimizeSpeed;
+    /* Chromium + Safari */
+    image-rendering: pixelated;
+    position: absolute;
+    height: 100%;
+    top: 0;
+    left: 0;
+    mix-blend-mode: multiply;
+}

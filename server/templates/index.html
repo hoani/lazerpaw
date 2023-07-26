@@ -65,14 +65,14 @@
 
         <div class="row justify-content-md-center">
             <div class="col-md-auto video-container">
-                <img id="videofeed" src="{{ url_for('video_feed') }}">
+                <img id="videofeed" src="{{ url_for('video_feed') }}" style="pointer-events: auto;">
                 <div class="col-md-auto form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="manualSwitch">
                     <label class="form-check-label" for="manualSwitch">Manual</label>
                 </div>
-            </div>
-            <div class="col-md-auto video-container" style="height:100%">
-                <img src="{{ url_for('proc_feed') }}" style="height:100%">
+                <img src="{{ url_for('proc_feed') }}"
+                    style="-ms-interpolation-mode: nearest-neighbor;image-rendering: optimizeSpeed;image-rendering: pixelated;
+                position: absolute;height: 100%;top: 0;left: 0;mix-blend-mode: multiply;opacity:0.5; pointer-events: none;">
                 <div class="slider">
                     <label for="threshold" class="form-label">Set Threshold</label>
                     <input type="range" class="form-range" min="10" max="245" id="threshold">

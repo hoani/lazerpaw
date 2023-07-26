@@ -163,6 +163,7 @@ if __name__ == "__main__":
 
         masked = threshold.process_frame(capture)
         server.update_video(capture)
+        # showMasked = cv.resize(masked, (capture.shape[1], capture.shape[0]), cv.INTER_NEAREST)
         server.update_proc(masked)
 
         ctl = c.update(masked, dt)
@@ -178,11 +179,11 @@ if __name__ == "__main__":
             lazer.set(lazerTester.get())
 
         pantilt.update(dt)
-        print(
-            'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
-            'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
-            'Target - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.yaw.target, pantilt.pitch.target)
-        )
+        # print(
+        #     'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
+        #     'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
+        #     'Target - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.yaw.target, pantilt.pitch.target)
+        # )
     
     camera.release()
     exit(0)
