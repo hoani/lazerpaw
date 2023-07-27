@@ -8,6 +8,7 @@ from hardware.camera import Camera
 from hardware.servo import PanTilt
 from hardware.lazer import Lazer
 import time
+import subprocess
 
 class ControlRoutine:
     ExecutionPeriod = 120 
@@ -140,6 +141,19 @@ class Shutdown:
         self.value = True
         self.mu.release()
 
+def do_shutdown():
+    start = time.time()
+    remaining = 5
+    while remaining > 0:
+        data = {
+            "state": "Shutting down",
+            "remaining": remaining
+        }
+        server.update_data(data)
+        remaining = 5 - (time.time() - start)
+        time.sleep(0.05)
+    subprocess.run(["shutdown", "-h", "now"]) 
+
 
 if __name__ == "__main__":
     serverThread = server.start()
@@ -172,8 +186,9 @@ if __name__ == "__main__":
     state = "Idle"
     for capture in camera.frame():
         if shutdown.get():
-            # TODO: make shutdown
+            do_shutdown()
             break
+
         if dt == 0:
             dt = 1/30 # Handle first update.
         else:
@@ -204,15 +219,15 @@ if __name__ == "__main__":
 
         pantilt.update(dt)
 
-        state = {
+        data = {
             "time": time.strftime("%H:%M:%S"), 
             "state": state,
         }
         remaining = c.get_remaining()
         if remaining > 0:
-            state["remaining"] = remaining
+            data["remaining"] = remaining
 
-        server.update_data(state)
+        server.update_data(data)
         # print(
         #     'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
         #     'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
