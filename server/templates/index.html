@@ -41,7 +41,7 @@
 </head>
 
 <body>
-    <h1>LazerPaw Live Streaming</h1>
+    <h1>LazerPaw</h1>
     <div class="container-fluid text-center">
         <div class="row justify-content-md-center my-2">
             <div class="col-1 ">
@@ -64,23 +64,52 @@
         </div>
 
         <div class="row justify-content-md-center">
-            <div class="col-md-auto video-container">
-                <img id="videofeed" src="{{ url_for('video_feed') }}" style="pointer-events: auto;">
-                <div class="col-md-auto form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="manualSwitch">
-                    <label class="form-check-label" for="manualSwitch">Manual</label>
-                </div>
-                <img src="{{ url_for('proc_feed') }}"
-                    style="-ms-interpolation-mode: nearest-neighbor;image-rendering: optimizeSpeed;image-rendering: pixelated;
-                position: absolute;height: 100%;top: 0;left: 0;mix-blend-mode: multiply;opacity:0.5; pointer-events: none;">
-                <div class="slider">
-                    <label for="threshold" class="form-label">Set Threshold</label>
-                    <input type="range" class="form-range" min="10" max="245" id="threshold">
+            <div class="col-md-auto">
+                <div class="video-container">
+                    <img id="videofeed" src="{{ url_for('video_feed') }}" style="pointer-events: auto;">
+                    <img src="{{ url_for('proc_feed') }}"
+                        style="-ms-interpolation-mode: nearest-neighbor;image-rendering: optimizeSpeed;image-rendering: pixelated;
+                position: absolute; height:100%; top: 0;left: 0;mix-blend-mode: multiply;opacity:0.5; pointer-events: none;">
+                    <div class="col-md-auto form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="manualSwitch">
+                        <label class="form-check-label" for="manualSwitch">Manual</label>
+                    </div>
+                    <div class="slider">
+                        <label for="threshold" class="form-label">Set Threshold</label>
+                        <input type="range" class="form-range" min="10" max="245" id="threshold">
+                    </div>
                 </div>
             </div>
         </div>
+        <div class="row">
+            <h3>Time: <span id="time_data">???</span> State: <span id="state_data">UNKNOWN</span></h3>
+        </div>
     </div>
     <hr>
+
+    <script>
+        // Data feed handling.
+        var time_data = document.getElementById('time_data');
+        var state_data = document.getElementById('state_data');
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', "{{ url_for('data_feed') }}");
+
+
+        xhr.onreadystatechange = function () {
+            var messages = xhr.responseText.split('\n');
+            last = messages.length - 2
+            data = JSON.parse(messages[last])
+            if (data["time"] != false) {
+                time_data.textContent = data["time"]
+            }
+            if (data["state"] != false) {
+                state_data.textContent = data["state"]
+            }
+        }
+
+        xhr.send();
+    </script>
 </body>
 
 </html>

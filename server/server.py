@@ -3,11 +3,14 @@ import cv2 as cv
 import queue
 from threading import Thread
 from typing import Callable
+import json
+import time
 
 
 app = Flask(__name__)
 videoQueue = queue.Queue(maxsize=1)
 procQueue = queue.Queue(maxsize=1)
+dataQueue = queue.Queue(maxsize=1)
 
 startCb = lambda _: _
 stopCb = lambda _: _
@@ -24,13 +27,13 @@ def index():
 @app.route('/video_feed')
 def video_feed():
     if "once" in request.args.keys():
-        return Response(gen_single(videoQueue),mimetype='image/jpeg; boundary=frame')
-    return Response(gen(videoQueue),
+        return Response(generate_video_frame_single(videoQueue),mimetype='image/jpeg; boundary=frame')
+    return Response(generate_video_frame(videoQueue),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/proc_feed')
 def proc_feed():
-    return Response(gen(procQueue),
+    return Response(generate_video_frame(procQueue),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/button')
@@ -86,17 +89,28 @@ def threshold_click():
     except:
         pass
     return ""
+
+@app.route('/data_feed')
+def data_feed():
+    return Response(generate_data_feed(dataQueue),
+                    mimetype='text/plain')
+
             
-def gen(q):
+def generate_data_feed(q):
     while True:
-        jpegBytes = gen_single(q)
+        data = q.get(block=True, timeout=None)
+        yield(data)
+            
+def generate_video_frame(q):
+    while True:
+        jpegBytes = generate_video_frame_single(q)
         if jpegBytes is not None:
             yield(b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + 
                 jpegBytes + 
                 b'\r\n')
             
-def gen_single(q):
+def generate_video_frame_single(q):
     frame = q.get(block=True, timeout=None)
     ok, frameJpeg = cv.imencode(".jpeg", frame)
     if ok:
@@ -115,6 +129,9 @@ def update_video(frame):
 
 def update_proc(frame):
     update_queue(procQueue, frame.copy())
+
+def update_data(data):
+    update_queue(dataQueue, json.dumps(data)+"\n")
 
 def update_queue(queue, item):
     try:
@@ -159,8 +176,8 @@ if __name__ == '__main__':
 
     cap = cv.VideoCapture(0)
     try:
-        cap.set(cv.CAP_PROP_FRAME_WIDTH, 320)
-        cap.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+        cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
 
         while True:
             isTrue, frame = cap.read()
@@ -168,8 +185,17 @@ if __name__ == '__main__':
                 break
             update_video(frame)
 
-            grey = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-            update_proc(grey)
+            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+            start = time.time()
+            gray = cv.resize(gray, (80,60), cv.INTER_LINEAR)
+            _, masked = cv.threshold(gray, 100, 255, cv.THRESH_BINARY)
+            print("deltaT: ", (time.time() - start)*1000)
+            update_proc(masked)
+
+            current_time = time.strftime("%H:%M:%S")
+            state = "IDLE"
+            data = {"time": current_time, "state": state}
+            update_data(data)
     except KeyboardInterrupt:
         cap.release()
         pass
