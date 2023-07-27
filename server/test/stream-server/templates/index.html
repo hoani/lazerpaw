@@ -1,0 +1,39 @@
+<html>
+
+<head>
+    <title>LazerPaw</title>
+    <link rel="stylesheet" href='../static/style.css' />
+</head>
+
+<body>
+    <h1>LazerPaw Live Streaming</h1>
+    <h3><img src="{{ url_for('video_feed') }}" width="45%"></h3>
+    <h2>Time: <span id="time_data">???</span></h2>
+    <h2>State: <span id="state_data">UNKNOWN</span></h2>
+    <hr>
+
+    <script>
+        var time_data = document.getElementById('time_data');
+        var state_data = document.getElementById('state_data');
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', "{{ url_for('data_feed') }}");
+
+
+        xhr.onreadystatechange = function () {
+            var messages = xhr.responseText.split('\n');
+            last = messages.length - 2
+            data = JSON.parse(messages[last])
+            if (data["time"] != false) {
+                time_data.textContent = data["time"]
+            }
+            if (data["state"] != false) {
+                state_data.textContent = data["state"]
+            }
+        }
+
+        xhr.send();
+    </script>
+</body>
+
+</html>
