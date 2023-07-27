@@ -82,7 +82,11 @@
             </div>
         </div>
         <div class="row">
-            <h3>Time: <span id="time_data">???</span> State: <span id="state_data">UNKNOWN</span></h3>
+            <h3>
+                Time: <span id="time_data">???</span>
+                State: <span id="state_data">UNKNOWN</span>
+                <span id="remaining_data"></span>
+            </h3>
         </div>
     </div>
     <hr>
@@ -91,6 +95,7 @@
         // Data feed handling.
         var time_data = document.getElementById('time_data');
         var state_data = document.getElementById('state_data');
+        var remaining_data = document.getElementById('remaining_data');
 
         var xhr = new XMLHttpRequest();
         xhr.open('GET', "{{ url_for('data_feed') }}");
@@ -98,13 +103,18 @@
 
         xhr.onreadystatechange = function () {
             var messages = xhr.responseText.split('\n');
-            last = messages.length - 2
-            data = JSON.parse(messages[last])
+            last = messages.length - 2;
+            data = JSON.parse(messages[last]);
             if (data["time"] != false) {
-                time_data.textContent = data["time"]
+                time_data.textContent = data["time"];
             }
             if (data["state"] != false) {
-                state_data.textContent = data["state"]
+                state_data.textContent = data["state"];
+            }
+            if (typeof data["remaining"] == 'number') {
+                remaining_data.textContent = "remaining:" + data["remaining"].toFixed(2);
+            } else {
+                remaining_data.textContent = "";
             }
         }
 

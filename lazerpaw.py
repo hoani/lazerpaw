@@ -10,25 +10,44 @@ from hardware.lazer import Lazer
 import time
 
 class ControlRoutine:
+    ExecutionPeriod = 120 
     def __init__(self, pan, tilt, pan_boundary, tilt_boundary):
         self.mu = Lock()
         self.c = Controller(pan, tilt, pan_boundary, tilt_boundary)
         self.running = False
+        self.execution_start = time.time()
 
-    def update(self, masked, dt):
-        running = False
-        if self.mu.acquire(timeout=dt):
-            running = self.running
-            self.mu.release()
-        
-        if running:
+    def update(self, masked, dt):        
+        if self.get_remaining() > 0:
             self.c.update(masked, dt)
             return self.c
+            
         return None
+
+    def get_remaining(self):
+        self.mu.acquire()
+        if self.running:
+            delta = time.time() - self.execution_start
+            remaining = ControlRoutine.ExecutionPeriod - delta
+            if remaining < 0:
+                remaining = 0
+                self.running = False
+        else:
+            remaining = 0
+
+        self.mu.release()
+        return remaining
+
+    def get_running(self):
+        self.mu.acquire()
+        value = self.running
+        self.mu.release()
+        return value
     
     def start(self):
         self.mu.acquire()
         self.running = True
+        self.execution_start = time.time()
         self.mu.release()
     
     def stop(self):
@@ -150,6 +169,7 @@ if __name__ == "__main__":
 
     last_s = time.time()
     i = 0
+    state = "Idle"
     for capture in camera.frame():
         if shutdown.get():
             # TODO: make shutdown
@@ -168,17 +188,31 @@ if __name__ == "__main__":
 
         ctl = c.update(masked, dt)
         if ctl is not None:
+            state = 'Running'
             lazer.set(ctl.lazer())
 
             pantilt.pan(ctl.yaw())
             pantilt.tilt(ctl.pitch())
         else:
             if manual.get_enabled():
+                state = 'Manual'
                 pantilt.increment_pan(manual.get_delta_yaw())
                 pantilt.increment_tilt(manual.get_delta_pitch())
+            else:
+                state = 'Idle'
             lazer.set(lazerTester.get())
 
         pantilt.update(dt)
+
+        state = {
+            "time": time.strftime("%H:%M:%S"), 
+            "state": state,
+        }
+        remaining = c.get_remaining()
+        if remaining > 0:
+            state["remaining"] = remaining
+
+        server.update_data(state)
         # print(
         #     'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
         #     'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
