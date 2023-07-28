@@ -16,7 +16,7 @@ def YawServo(factory):
 def PitchServo(factory):
     return AngularServo(
         13, 
-        initial_angle=0, 
+        initial_angle=20, 
         min_angle=0, 
         max_angle=40, 
         min_pulse_width=1.05/1000, 
@@ -48,6 +48,8 @@ class Control:
                 self.servo.angle = self.target
             else:
                 self.servo.angle += np.sign(delta) * slew
+        else:
+            self.servo.angle = self.target
 
     def boundary(self):
         return (self.servo.min_angle, self.servo.max_angle)

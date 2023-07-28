@@ -73,11 +73,27 @@ if __name__ == "__main__":
             dt = now_s - last_s
             last_s = now_s
 
-        masked = threshold.process_frame(capture)
+        masked, cropped = threshold.process_frame(capture)
         server.update_video(capture)
         server.update_proc(masked)
+        
 
-        ctl = c.update(masked, dt)
+        
+        # blank = np.zeros(masked.shape[:2], dtype='uint8')
+        # cmasked = blank.copy()
+        
+        # ## Crop image to radius.
+        # srcw, srch = masked.shape[1], masked.shape[0]
+        # dstw, dsth = cropped.shape[1], cropped.shape[0]
+
+        # x0, y0 = int((srcw-dstw)/2), int((srch-dsth)/2)
+        # x1, y1 = int(x0 + dstw), int(y0 +dsth)
+        # cmasked[ y0:y1, x0:x1] = cropped
+        # merged = cv.merge([blank, cmasked, masked])
+
+        # server.update_proc(merged)
+
+        ctl = c.update(cropped, dt)
         if ctl is not None:
             state = 'Running'
             lazer.set(ctl.lazer())
@@ -116,11 +132,11 @@ if __name__ == "__main__":
             else:
                 c.stop()
                 
-        # print(
-        #     'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
-        #     'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
-        #     'Target - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.yaw.target, pantilt.pitch.target)
-        # )
+        print(
+            'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
+            'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
+            'Target - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.yaw.target, pantilt.pitch.target)
+        )
     
     camera.release()
     exit(0)
