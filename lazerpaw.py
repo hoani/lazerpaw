@@ -153,7 +153,14 @@ def do_shutdown():
         server.update_data(data)
         remaining = 5 - (time.time() - start)
         time.sleep(0.05)
-    subprocess.run(["shutdown", "-h", "now"]) 
+
+    data = {
+        "state": "Shutting down",
+        "remaining": 0
+    }
+    server.update_data(data)
+    time.sleep(0.05)
+    subprocess.run(["sudo", "shutdown", "-h", "now"]) 
 
 
 if __name__ == "__main__":
