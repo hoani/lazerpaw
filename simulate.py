@@ -143,7 +143,7 @@ if __name__ == "__main__":
     room = Room()
     camera = Camera()
     sim = Simulation(room=room, camera=camera)
-    sim.addCat(Cat(randint(0, room.size[0]),randint(0, room.size[1])))
+    sim.add_cat(Cat(randint(0, room.size[0]),randint(0, room.size[1])))
     
     c = ControlRoutine(camera.phi*180/np.pi, camera.theta*180/np.pi)
     server.set_start_cb(c.start)
@@ -185,8 +185,8 @@ if __name__ == "__main__":
             camera.commandTilt(ctl.pitch()*np.pi/180)
         else:
             if manual.get_enabled():
-                camera.incrementPan(manual.get_delta_pitch())
-                camera.incrementTilt(manual.get_delta_yaw())
+                camera.increment_pan(manual.get_delta_pitch())
+                camera.increment_tilt(manual.get_delta_yaw())
             sim.lazerOn = lazerTester.get()
 
         if cv.waitKey(int(100*dt)) != -1:

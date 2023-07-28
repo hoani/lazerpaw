@@ -70,7 +70,7 @@ class Camera():
         self.tiltMin = np.pi/32
         self.tiltMax = np.arctan2(3,2)
 
-    def commandPan(self, phi):
+    def command_pan(self, phi):
         if phi < -np.pi / 8:
             phi = -np.pi / 8
         if phi > np.pi /8:
@@ -78,7 +78,7 @@ class Camera():
 
         self.phi = phi
 
-    def commandTilt(self, theta):
+    def command_tilt(self, theta):
         if theta < self.tiltMin:
             theta = self.tiltMin
         if theta > self.tiltMax:
@@ -86,18 +86,18 @@ class Camera():
 
         self.theta = theta
 
-    def incrementPan(self, delta):
-        self.commandPan(self.phi + delta)
+    def increment_pan(self, delta):
+        self.command_pan(self.phi + delta)
 
-    def incrementTilt(self, delta):
-        self.commandTilt(self.theta + delta)
+    def increment_tilt(self, delta):
+        self.command_tilt(self.theta + delta)
 
 
     def center(self):
-        return self.floorIntersection(self.phi, self.theta)
+        return self.floor_intersection(self.phi, self.theta)
 
     # The math isn't quite right here... but for an approximation it's ok.
-    def floorIntersection(self, xangle, yangle):
+    def floor_intersection(self, xangle, yangle):
         dy = np.tan(yangle) * self.height
         dx = np.tan(xangle) * self.height
         
@@ -130,7 +130,7 @@ class Camera():
         # Apply Perspective Transform Algorithm
         return cv.getPerspectiveTransform(pts, lens)
     
-    def takeFrame(self, image, projection):
+    def take_frame(self, image, projection):
         return cv.warpPerspective(image, projection, __class__.imageSize)
         
     
@@ -156,7 +156,7 @@ class Simulation():
         self.floor = self.floortexture.copy()
         self.cats = []
 
-    def addCat(self, cat: Cat):
+    def add_cat(self, cat: Cat):
         self.cats.append(cat)
 
     def update(self):
@@ -182,7 +182,7 @@ class Simulation():
 
         # print('theta: {:.1f}, phi: {:.1f}'.format(180*self.camera.theta/np.pi, 180*self.camera.phi/np.pi))
 
-        result = self.camera.takeFrame(self.floor, matrix)
+        result = self.camera.take_frame(self.floor, matrix)
         
         ones = np.ones((Camera.imageSize[1], Camera.imageSize[0]), dtype='uint8')
         light = cv.merge([0*ones,255*ones,255*ones])
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     room = Room()
     camera = Camera()
     sim = Simulation(room=room, camera=camera)
-    sim.addCat(Cat(400,400))
+    sim.add_cat(Cat(400,400))
 
     while True:
         
@@ -218,13 +218,13 @@ if __name__ == "__main__":
 
 
         if pressed is UP:
-            camera.incrementTilt(1* (np.pi / 180))
+            camera.increment_tilt(1* (np.pi / 180))
         elif pressed is DOWN:
-            camera.incrementTilt(-1* (np.pi / 180))
+            camera.increment_tilt(-1* (np.pi / 180))
         elif pressed is LEFT:
-            camera.incrementPan(-1* (np.pi / 180))
+            camera.increment_pan(-1* (np.pi / 180))
         elif pressed is RIGHT:
-            camera.incrementPan(1* (np.pi / 180))
+            camera.increment_pan(1* (np.pi / 180))
         else:
             exit(0)
 

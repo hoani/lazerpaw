@@ -9,6 +9,15 @@ class HSV:
     def str(self):
         return '{:02x}{:02x}{:02x}'.format(self.h, self.s, self.v)
 
+class RGB:
+    def __init__(self, r, g, b):
+        self.r = r
+        self.g = g
+        self.b = b
+
+    def str(self):
+        return '{:02x}{:02x}{:02x}'.format(self.r, self.g, self.b)
+
 class LEDs:
     def __init__(self):
         self.ser = serial.Serial(
@@ -22,6 +31,13 @@ class LEDs:
         result = 'H{:02x}'.format(i)
         for val in vals:
             result += val.str()
+        result += '\n'
+        self.ser.write(bytes(result, 'utf-8'))
+
+    def rgb(self, i, vals):
+        result = 'R{:02x}'.format(i)
+        for val in vals:
+            result += val.rgb()
         result += '\n'
         self.ser.write(bytes(result, 'utf-8'))
 

@@ -64,9 +64,6 @@ class Controller:
         self.ddx = ddx
         self.ddy = ddy
 
-        # dx = self.kr * fx 
-        # dy = self.kr * fy
-
         self.x = self.x - dt * (self.dx + dx)/2 
         self.y = self.y - dt * (self.dy + dy)/2
 
