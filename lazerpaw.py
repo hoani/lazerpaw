@@ -7,6 +7,7 @@ from threading import Lock
 from hardware.camera import Camera
 from hardware.servo import PanTilt
 from hardware.lazer import Lazer
+from hardware.button import Button
 import time
 import subprocess
 
@@ -161,6 +162,7 @@ if __name__ == "__main__":
     pantilt = PanTilt()
     camera = Camera()
     lazer = Lazer()
+    button = Button()
     
     c = ControlRoutine(pantilt.get_pan(), pantilt.get_tilt(), pantilt.get_pan_boundary(), pantilt.get_tilt_boundary())
     server.set_start_cb(c.start)
@@ -198,7 +200,6 @@ if __name__ == "__main__":
 
         masked = threshold.process_frame(capture)
         server.update_video(capture)
-        # showMasked = cv.resize(masked, (capture.shape[1], capture.shape[0]), cv.INTER_NEAREST)
         server.update_proc(masked)
 
         ctl = c.update(masked, dt)
@@ -228,6 +229,18 @@ if __name__ == "__main__":
             data["remaining"] = remaining
 
         server.update_data(data)
+
+        cmd = button.update()
+        if cmd == Button.CommandShutdown:
+            shutdown.set()
+        elif cmd == Button.CommandRun:
+            if c.get_running() == False:
+                if manual.get_enabled():
+                    manual.set_enabled(False)
+                c.start()
+            else:
+                c.stop()
+                
         # print(
         #     'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
         #     'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
