@@ -1,4 +1,5 @@
 import serial
+import numpy as np
 
 class HSV:
     def __init__(self, h, s, v):
@@ -43,6 +44,49 @@ class LEDs:
 
     def show(self):
         self.ser.write(b'S\n')
+
+class Status:
+    def __init__(self):
+        self.leds = LEDs()
+        self.idleVals = [
+            HSV(0x00,0xff,0xff), HSV(0x20,0xff,0xff), HSV(0x40,0xff,0xff), HSV(0x60,0xff,0xff),
+            HSV(0x80,0xff,0xff), HSV(0xa0,0xff,0xff), HSV(0xb0,0xff,0xff), HSV(0xc0,0xff,0xff),
+        ]
+
+    def update_idle(self):
+        for val in self.idleVals:
+            val.h=(val.h + 1) % 0xff
+        leds.hsv(0, vals)
+        leds.show()
+
+    def update_running(self, frac):
+        hue = int((1-frac) * 122)
+        v = np.sin(85*np.pi*frac)
+        runVal = HSV(hue, 255, v)
+        vals = [runVal, runVal, runVal, runVal, runVal, runVal, runVal, runVal]
+        leds.hsv(0, vals)
+        leds.show()
+
+    def update_manual(self):
+        hue = int(180)
+        vals = []
+        for i in range(8):
+            val = int(i * 32 + time.time()*8) % 256
+            vals.append(HSV(hue, 255, val))
+        leds.hsv(0, vals)
+        leds.show()
+
+    def update_shutdown(self, frac):
+        hue = int(220)
+        sat = 255*(1-frac)
+        vals = []
+        for i in range(8):
+            val = int(i * 32 + frac * 2560) % 256
+            vals.append(HSV(hue, sat, val))
+        leds.hsv(0, vals)
+        leds.show()
+
+
 
 if __name__ == "__main__":
 
