@@ -48,20 +48,14 @@ class Controller:
 
         # This is the cause of the lower frame rate
         for i in range(shape[1]):
-            x = -(i-x0) # Note: the camera orientation makes this inverted
             for j in range(shape[0]):
-                y = -(y0-j) # Note: the camera orientation makes this inverted
-
                 if img.data[j, i] == 0:
                     d = self.d[i][j]
                     if d < 2:
                         lazerSafe = False
-                    else:
-                        if d < x0:
-                            if x != 0:
-                                fx += self.fx[i][j]
-                            if y != 0:
-                                fy += self.fy[i][j]
+                    
+                    fx += self.fx[i][j]
+                    fy += self.fy[i][j]
         
         ddx = self.kr * fx - self.dx * self.kf
         ddy = self.kr * fy - self.dy * self.kf
@@ -99,15 +93,20 @@ class Controller:
         x0, y0 = shape[1]//2, shape[0]//2
         if len(self.d) == 0:
             for i in range(shape[1]):
-                x = -(i-x0)
+                x = -(i-x0) # Note: the camera orientation makes this inverted
                 self.d.append([])
                 self.fx.append([])
                 self.fy.append([])
                 for j in range(shape[0]):
                     y = -(y0-j)
                     d = np.sqrt(x**2 + y**2)
-                    fx = -1/(x*d)
-                    fy = -1/(y*d)
+                    fx = 0
+                    fy = 0
+                    ## centered elements and elements outside of the cropped radius have zero impact
+                    if x != 0 and d < x0:
+                        fx = -1/(x*d)
+                    if y != 0 and d < x0:
+                        fy = -1/(y*d)
                     self.d[i].append(d)
                     self.fx[i].append(fx)
                     self.fy[i].append(fy)

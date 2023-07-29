@@ -88,8 +88,8 @@ class ManualMode:
         if w == 0 or h == 0:
             return
         
-        deltaPitch = self.pitchRange*((y - h/2))/h
-        deltaYaw = self.yawRange*(-(x - w/2))/w
+        deltaPitch = self.pitchRange*(-(y - h/2))/h
+        deltaYaw = self.yawRange*((x - w/2))/w
         print("setting delta pitch", deltaPitch, "delta yaw", deltaYaw)
         self.mu.acquire()
         self.deltaPitch = deltaPitch

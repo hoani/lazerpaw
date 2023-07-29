@@ -62,7 +62,7 @@ class Camera():
     hfov = 62.2
     imageSize=(640,480)
     TiltBounds = (10, 45)
-    PanBounds = (-50, 50)
+    PanBounds = (-25, 25)
 
     def __init__(self, height=1800, room=Room()):
         self.tilt = 45 # 0 deg = pointing down

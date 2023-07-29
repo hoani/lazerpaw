@@ -5,6 +5,7 @@ import numpy as np
 from random import randint
 import server.server as server
 import controller.commands as cmds
+import time
 
 
 
@@ -46,18 +47,30 @@ if __name__ == "__main__":
 
         server.update_proc(masked)
 
-
         ctl = c.update(cropped, dt)
+        state = "Idle"
         if ctl is not None:
+            state = "Running"
             sim.lazerOn = ctl.lazer()
 
-            camera.commandPan(ctl.yaw() *np.pi/180)
-            camera.commandTilt(ctl.pitch()*np.pi/180)
+            camera.command_pan(ctl.yaw())
+            camera.command_tilt(ctl.pitch())
         else:
             if manual.get_enabled():
-                camera.increment_pan(manual.get_delta_pitch())
-                camera.increment_tilt(manual.get_delta_yaw())
+                camera.increment_pan(manual.get_delta_yaw())
+                camera.increment_tilt(manual.get_delta_pitch())
+                state = "Manual"
             sim.lazerOn = lazerTester.get()
+
+        data = {
+            "time": time.strftime("%H:%M:%S"), 
+            "state": state,
+        }
+        remaining = c.get_remaining()
+        if remaining > 0:
+            data["remaining"] = remaining
+
+        server.update_data(data)
 
         if cv.waitKey(int(100*dt)) != -1:
             break
