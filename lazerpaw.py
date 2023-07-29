@@ -6,6 +6,7 @@ from hardware.camera import Camera
 from hardware.servo import PanTilt
 from hardware.lazer import Lazer
 from hardware.button import Button
+from hardware.led import Status
 import time
 import subprocess
 import controller.commands as cmds
@@ -20,6 +21,7 @@ def do_shutdown():
         }
         server.update_data(data)
         remaining = 5 - (time.time() - start)
+        led.update_shutdown(remaining/5)
         time.sleep(0.05)
 
     data = {
@@ -38,6 +40,7 @@ if __name__ == "__main__":
     camera = Camera()
     lazer = Lazer()
     button = Button()
+    led = Status()
     
     c = cmds.ControlRoutine(pantilt.get_pan(), pantilt.get_tilt(), pantilt.get_pan_boundary(), pantilt.get_tilt_boundary())
     server.set_start_cb(c.start)
@@ -120,6 +123,14 @@ if __name__ == "__main__":
             data["remaining"] = remaining
 
         server.update_data(data)
+
+        if state == "Running":
+            led.update_running(remaining/cmds.ControlRoutine.ExecutionPeriod)
+        elif state == "Manual":
+            led.update_manual()
+        else:
+            led.update_idle()
+
 
         cmd = button.update()
         if cmd == Button.CommandShutdown:

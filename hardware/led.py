@@ -1,8 +1,9 @@
 import serial
 import numpy as np
+import time
 
 class HSV:
-    def __init__(self, h, s, v):
+    def __init__(self, h: int, s: int, v: int):
         self.h = h
         self.s = s
         self.v = v
@@ -11,7 +12,7 @@ class HSV:
         return '{:02x}{:02x}{:02x}'.format(self.h, self.s, self.v)
 
 class RGB:
-    def __init__(self, r, g, b):
+    def __init__(self, r: int, g: int, b: int):
         self.r = r
         self.g = g
         self.b = b
@@ -56,35 +57,37 @@ class Status:
     def update_idle(self):
         for val in self.idleVals:
             val.h=(val.h + 1) % 0xff
-        leds.hsv(0, vals)
-        leds.show()
+        self.leds.hsv(0, self.idleVals)
+        self.leds.show()
 
     def update_running(self, frac):
-        hue = int((1-frac) * 122)
-        v = np.sin(85*np.pi*frac)
-        runVal = HSV(hue, 255, v)
+        hue = int(frac * 122)
+        v = int(0x8f * (1 + np.sin(85*np.pi*frac)))
+        runVal = HSV(hue, 0xff, v)
         vals = [runVal, runVal, runVal, runVal, runVal, runVal, runVal, runVal]
-        leds.hsv(0, vals)
-        leds.show()
+        self.leds.hsv(0, vals)
+        self.leds.show()
 
     def update_manual(self):
         hue = int(180)
-        vals = []
-        for i in range(8):
-            val = int(i * 32 + time.time()*8) % 256
-            vals.append(HSV(hue, 255, val))
-        leds.hsv(0, vals)
-        leds.show()
+        v = int(0x8f * (1 + np.sin(0.5*np.pi*time.time())))
+        runVal = HSV(hue, 0xff, v)
+        vals = [runVal, runVal, runVal, runVal, runVal, runVal, runVal, runVal]
+        self.leds.hsv(0, vals)
+        self.leds.show()
 
     def update_shutdown(self, frac):
-        hue = int(220)
-        sat = 255*(1-frac)
+        hue = int(230)
+        sat = int(0xff*(frac))
         vals = []
+        count = int(np.ceil(frac * 8))
         for i in range(8):
-            val = int(i * 32 + frac * 2560) % 256
-            vals.append(HSV(hue, sat, val))
-        leds.hsv(0, vals)
-        leds.show()
+            if i <= count:
+                vals.append(HSV(hue, sat, 0xff))
+            else:
+                vals.append(HSV(hue, 0x00, 0x00))
+        self.leds.hsv(0, vals)
+        self.leds.show()
 
 
 
