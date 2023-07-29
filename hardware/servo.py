@@ -7,20 +7,20 @@ def YawServo(factory):
     return AngularServo(
         18, 
         initial_angle=0, 
-        min_angle=-45, 
-        max_angle=45, 
-        min_pulse_width=1.25/1000, 
-        max_pulse_width=1.75/1000,
+        min_angle=-50, 
+        max_angle=50, 
+        min_pulse_width=0.820/1000, 
+        max_pulse_width=1.960/1000,
         pin_factory=factory)
 
 def PitchServo(factory):
     return AngularServo(
         13, 
-        initial_angle=20, 
-        min_angle=0, 
-        max_angle=40, 
+        initial_angle=10, 
+        min_angle=5, 
+        max_angle=45, 
         min_pulse_width=1.05/1000, 
-        max_pulse_width=1.4/1000,
+        max_pulse_width=1.5/1000,
         pin_factory=factory)
 
 class Control:
@@ -93,6 +93,8 @@ if __name__ == "__main__":
 
     deltaT = 0.2
     deltaAngle = 0.125
+    sleep(1)
+
     while True:
         while pantilt.yaw.servo.angle < pantilt.yaw.servo.max_angle - 0.5:
             pantilt.increment_pan(deltaAngle)
