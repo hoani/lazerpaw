@@ -58,65 +58,67 @@ class Room():
         self.size=roomSize
 
 class Camera():
-    vfov = 48.8 * (np.pi/180)
-    hfov = 62.2 * (np.pi/180)
+    vfov = 48.8
+    hfov = 62.2
     imageSize=(640,480)
+    TiltBounds = (10, 45)
+    PanBounds = (-50, 50)
 
     def __init__(self, height=1800, room=Room()):
-        self.theta = 45 * (np.pi / 180) # 0 deg = pointing down
-        self.phi = 0 # 0 deg = pointing forward
+        self.tilt = 45 # 0 deg = pointing down
+        self.pan = 0 # 0 deg = pointing forward
         self.height=height
         self.room=room
-        self.tiltMin = np.pi/32
-        self.tiltMax = np.arctan2(3,2)
 
-    def command_pan(self, phi):
-        if phi < -np.pi / 8:
-            phi = -np.pi / 8
-        if phi > np.pi /8:
-            phi = np.pi / 8
+    def command_pan(self, cmd):
+        self.pan = __class__._apply_bounds(cmd, __class__.PanBounds)
 
-        self.phi = phi
+    def command_tilt(self, cmd):
+        self.tilt = __class__._apply_bounds(cmd, __class__.TiltBounds)
 
-    def command_tilt(self, theta):
-        if theta < self.tiltMin:
-            theta = self.tiltMin
-        if theta > self.tiltMax:
-            theta = self.tiltMax
-
-        self.theta = theta
+    def _apply_bounds(input, bounds):
+        if input < bounds[0]:
+            input = bounds[0]
+        if input > bounds[1]:
+            input = bounds[1]
+        return input
 
     def increment_pan(self, delta):
-        self.command_pan(self.phi + delta)
+        self.command_pan(self.pan + delta)
 
     def increment_tilt(self, delta):
-        self.command_tilt(self.theta + delta)
+        self.command_tilt(self.tilt + delta)
 
 
     def center(self):
-        return self.floor_intersection(self.phi, self.theta)
+        return self.floor_intersection(self.pan, self.tilt)
 
-    # The math isn't quite right here... but for an approximation it's ok.
+    # The math isn't right here... but for an approximation it's ok.
     def floor_intersection(self, xangle, yangle):
-        dy = np.tan(yangle) * self.height
-        dx = np.tan(xangle) * self.height
+        xrad, yrad = xangle*np.pi/180, yangle*np.pi/180
+        dy = np.tan(yrad) * self.height
+        dx = np.tan(xrad) * self.height
         
-        x = self.room.size[0]/2 + np.sin(xangle) * dy  + np.cos(yangle) * dx
-        y = self.room.size[1] - np.cos(xangle) * dy + np.sin(xangle) * dx
+        
+        x = self.room.size[0]/2 + np.sin(xrad) * dy  + np.cos(yrad) * dx
+        y = self.room.size[1] - dy * np.cos(xrad) 
         return (x, y)
     
-    def projection(self):
-        thetaMin = self.theta - __class__.vfov/2
-        thetaMax = self.theta + __class__.vfov/2
-        phiMin = self.phi - __class__.hfov/2
-        phiMax = self.phi + __class__.hfov/2
+    def projection_points(self):
+        tiltMin = self.tilt - __class__.vfov/2
+        tiltMax = self.tilt + __class__.vfov/2
+        panMin = self.pan - __class__.hfov/2
+        panMax = self.pan + __class__.hfov/2
 
-        pts = np.float32([
-            self.floorIntersection(phiMin, thetaMin),  
-            self.floorIntersection(phiMin, thetaMax),  
-            self.floorIntersection(phiMax, thetaMax),  
-            self.floorIntersection(phiMax, thetaMin), 
+        return np.float32([
+            self.floor_intersection(panMin, tiltMin),  
+            self.floor_intersection(panMin, tiltMax),  
+            self.floor_intersection(panMax, tiltMax),  
+            self.floor_intersection(panMax, tiltMin), 
         ])
+    
+    def projection(self):
+        pts = self.projection_points()
 
         xMin, xMax = 0,  __class__.imageSize[0]
         yMin, yMax = 0,  __class__.imageSize[1]
@@ -132,9 +134,6 @@ class Camera():
     
     def take_frame(self, image, projection):
         return cv.warpPerspective(image, projection, __class__.imageSize)
-        
-    
-
 
 
 
@@ -204,7 +203,8 @@ if __name__ == "__main__":
 
     while True:
         
-        sim.update()
+        frame = sim.update()
+        cv.imshow('Camera', frame)
 
         pressed = cv.waitKey(10)
 
@@ -218,14 +218,17 @@ if __name__ == "__main__":
 
 
         if pressed is UP:
-            camera.increment_tilt(1* (np.pi / 180))
+            camera.increment_tilt(1)
         elif pressed is DOWN:
-            camera.increment_tilt(-1* (np.pi / 180))
+            camera.increment_tilt(-1)
         elif pressed is LEFT:
-            camera.increment_pan(-1* (np.pi / 180))
+            camera.increment_pan(-1)
         elif pressed is RIGHT:
-            camera.increment_pan(1* (np.pi / 180))
+            camera.increment_pan(1)
         else:
             exit(0)
+
+        print("center", camera.center())
+        print("points", camera.projection_points())
 
 
