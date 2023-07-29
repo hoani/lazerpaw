@@ -1,24 +1,27 @@
 import numpy as np
 
 class Controller:
-    def __init__(self, x0, y0, xbounds, ybounds):
-        self.x = x0
-        self.y = y0
+    def __init__(self, pan0, tilt0, panBounds, tiltBounds):
+        self.x = pan0
+        self.y = tilt0
         self.dx = 0
         self.dy = 0
         self.ddx = 0
         self.ddy = 0
-        self.kf = 0.1 # Friction
-        self.kr = 50 # Repulsion
+        self.kf = 0.2 # Friction
+        self.kr = 10 # Repulsion
         self.lazerCooldown = 10
 
-        self.xmin = xbounds[0]
-        self.xmax = xbounds[1]
+        self.xmin = panBounds[0]
+        self.xmax = panBounds[1]
 
-        self.ymin = ybounds[0]
-        self.ymax = ybounds[1]
+        self.ymin = tiltBounds[0]
+        self.ymax = tiltBounds[1]
 
         self.lazerOn = False
+        self.d = []
+        self.fx = []
+        self.fy = []
 
         return
 
@@ -39,25 +42,26 @@ class Controller:
         
         shape = img.shape
         x0, y0 = shape[1]//2, shape[0]//2
-        r2 = x0*x0
 
-        ## TODO: This loop requires optimization.
+        if len(self.d) == 0:
+            self._init_control_matrices(shape)
+
         # This is the cause of the lower frame rate
         for i in range(shape[1]):
-            x = i-x0
+            x = -(i-x0) # Note: the camera orientation makes this inverted
             for j in range(shape[0]):
-                y = y0-j
+                y = -(y0-j) # Note: the camera orientation makes this inverted
 
                 if img.data[j, i] == 0:
-                    if x == 0 and y == 0:
+                    d = self.d[i][j]
+                    if d < 2:
                         lazerSafe = False
                     else:
-                        d2 = x**2 + y**2
-                        if d2 < r2:
+                        if d < x0:
                             if x != 0:
-                                fx += -1/(x*d2)
+                                fx += self.fx[i][j]
                             if y != 0:
-                                fy += -1/(y*d2)
+                                fy += self.fy[i][j]
         
         ddx = self.kr * fx - self.dx * self.kf
         ddy = self.kr * fy - self.dy * self.kf
@@ -89,6 +93,24 @@ class Controller:
     
     def lazer(self):
         return self.lazerOn
+    
+
+    def _init_control_matrices(self, shape):
+        x0, y0 = shape[1]//2, shape[0]//2
+        if len(self.d) == 0:
+            for i in range(shape[1]):
+                x = -(i-x0)
+                self.d.append([])
+                self.fx.append([])
+                self.fy.append([])
+                for j in range(shape[0]):
+                    y = -(y0-j)
+                    d = np.sqrt(x**2 + y**2)
+                    fx = -1/(x*d)
+                    fy = -1/(y*d)
+                    self.d[i].append(d)
+                    self.fx[i].append(fx)
+                    self.fy[i].append(fy)
 
 
 
