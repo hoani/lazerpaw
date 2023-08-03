@@ -182,7 +182,8 @@ class Simulation():
 
         # print('pan: {:.1f}, tilt: {:.1f}'.format(self.camera.pantilt.get_pan(), self.camera.pantilt.get_tilt()))
 
-        result = self.camera.take_frame(self.floor, matrix)
+        frame = self.camera.take_frame(self.floor, matrix)
+        frame = cv.flip(frame, -1) # rotate 180deg to simulate camera hanging off roof.
         
         ones = np.ones((Camera.imageSize[1], Camera.imageSize[0]), dtype='uint8')
         light = cv.merge([0*ones,255*ones,255*ones])
@@ -192,7 +193,7 @@ class Simulation():
         
         cv.imshow('Floor', cv.resize(floorOverlay, Camera.imageSize))
 
-        return result
+        return frame
 
 
 # Manual Control

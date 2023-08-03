@@ -1,4 +1,5 @@
 import numpy as np
+import cv2 as cv
 
 class Controller:
     def __init__(self, pantilt):
@@ -7,8 +8,8 @@ class Controller:
         self.dy = 0
         self.ddx = 0
         self.ddy = 0
-        self.kf = 0.2 # Friction
-        self.kr = 10 # Repulsion
+        self.kf = 1 # Friction
+        self.kr = 20 # Repulsion
         self.lazerCooldown = 10
 
         self.lazerOn = False
@@ -74,21 +75,22 @@ class Controller:
 
     def _init_control_matrices(self, shape):
         x0, y0 = shape[1]//2, shape[0]//2
+        radius = x0
         if len(self.d) == 0:
             for i in range(shape[1]):
-                x = -(i-x0) # Note: the camera orientation makes this inverted
+                x = (i-x0) 
                 self.d.append([])
                 self.fx.append([])
                 self.fy.append([])
                 for j in range(shape[0]):
-                    y = -(y0-j)
+                    y = (y0-j)
                     d = np.sqrt(x**2 + y**2)
                     fx = 0
                     fy = 0
                     ## centered elements and elements outside of the cropped radius have zero impact
-                    if x != 0 and d < x0:
+                    if x != 0 and d < radius:
                         fx = -1/(x*d)
-                    if y != 0 and d < x0:
+                    if y != 0 and d < radius:
                         fy = -1/(y*d)
                     self.d[i].append(d)
                     self.fx[i].append(fx)

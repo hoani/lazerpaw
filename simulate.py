@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
         server.update_video(frame)
 
-        masked, cropped = threshold.process_frame(frame)
+        masked, cropped = threshold.process_frame(frame, pantilt)
 
         
 

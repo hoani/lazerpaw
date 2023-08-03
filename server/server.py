@@ -27,7 +27,7 @@ def index():
 @app.route('/video_feed')
 def video_feed():
     if "once" in request.args.keys():
-        return Response(generate_video_frame_single(videoQueue),mimetype='image/jpeg; boundary=frame')
+        return Response(generate_video_frame_once(videoQueue),mimetype='image/jpeg; boundary=frame')
     return Response(generate_video_frame(videoQueue),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -109,6 +109,14 @@ def generate_video_frame(q):
                 b'Content-Type: image/jpeg\r\n\r\n' + 
                 jpegBytes + 
                 b'\r\n')
+            
+def generate_video_frame_once(q):
+    frame = q.get(block=True, timeout=None)
+    frame = cv.flip(frame, -1)
+    ok, frameJpeg = cv.imencode(".jpeg", frame)
+    if ok:
+        return frameJpeg.tobytes()
+    return None
             
 def generate_video_frame_single(q):
     frame = q.get(block=True, timeout=None)
