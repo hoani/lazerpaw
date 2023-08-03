@@ -1,24 +1,30 @@
-from simulator.simulator import Room, Camera, Cat, Simulation
+from simulator.simulator import Room, Camera, Cat, Simulation, Servo, PanBounds, TiltBounds
 from controller.vision import ThresholdProcessor
+from controller.pantilt import PanTilt, ServoControl
+import controller.commands as cmds
 import cv2 as cv
 import numpy as np
 from random import randint
 import server.server as server
-import controller.commands as cmds
 import time
 
 
 
+    
 
 if __name__ == "__main__":
     serverThread = server.start()
 
+    panCtl = ServoControl(Servo(0, PanBounds[0], PanBounds[1]))
+    tiltCtl = ServoControl(Servo((TiltBounds[0] + TiltBounds[1])/2, TiltBounds[0], TiltBounds[1]))
+    pantilt = PanTilt(panCtl, tiltCtl)
+
     room = Room()
-    camera = Camera()
+    camera = Camera(pantilt)
     sim = Simulation(room=room, camera=camera)
     sim.add_cat(Cat(randint(0, room.size[0]),randint(0, room.size[1])))
     
-    c = cmds.ControlRoutine(camera.pan, camera.tilt, Camera.PanBounds, Camera.TiltBounds)
+    c = cmds.ControlRoutine(pantilt)
     server.set_start_cb(c.start)
     server.set_stop_cb(c.stop)
 
@@ -45,6 +51,8 @@ if __name__ == "__main__":
 
         masked, cropped = threshold.process_frame(frame)
 
+        
+
         server.update_proc(masked)
 
         ctl = c.update(cropped, dt)
@@ -52,15 +60,14 @@ if __name__ == "__main__":
         if ctl is not None:
             state = "Running"
             sim.lazerOn = ctl.lazer()
-
-            camera.command_pan(ctl.yaw())
-            camera.command_tilt(ctl.pitch())
         else:
             if manual.get_enabled():
-                camera.increment_pan(manual.get_delta_yaw())
-                camera.increment_tilt(manual.get_delta_pitch())
+                pantilt.increment_pan(manual.get_delta_yaw())
+                pantilt.increment_tilt(manual.get_delta_pitch())
                 state = "Manual"
             sim.lazerOn = lazerTester.get()
+
+        pantilt.update(dt)
 
         data = {
             "time": time.strftime("%H:%M:%S"), 

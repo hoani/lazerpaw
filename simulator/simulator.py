@@ -4,6 +4,9 @@ import os
 
 basePath = os.path.basename(os.path.dirname(__file__)) + "/"
 
+TiltBounds = (10, 45)
+PanBounds = (-25, 25)
+
 def src(filename):
     return basePath + filename
 
@@ -57,41 +60,37 @@ class Room():
     def __init__(self, roomSize=(3000,3000)):
         self.size=roomSize
 
+class Servo():
+    def __init__(self, angle, min, max):
+        self._angle = angle
+        self.min_angle = min
+        self.max_angle = max
+
+    @property
+    def angle(self):
+        return self._angle
+
+    @angle.setter
+    def angle(self, input):
+        if input < self.min_angle:
+            input = self.min_angle
+        if input > self.max_angle:
+            input = self.max_angle
+        self._angle = input
+
+
 class Camera():
     vfov = 48.8
     hfov = 62.2
     imageSize=(640,480)
-    TiltBounds = (10, 45)
-    PanBounds = (-25, 25)
 
-    def __init__(self, height=1800, room=Room()):
-        self.tilt = 45 # 0 deg = pointing down
-        self.pan = 0 # 0 deg = pointing forward
+    def __init__(self, pantilt, height=1800, room=Room()):
+        self.pantilt = pantilt
         self.height=height
         self.room=room
 
-    def command_pan(self, cmd):
-        self.pan = __class__._apply_bounds(cmd, __class__.PanBounds)
-
-    def command_tilt(self, cmd):
-        self.tilt = __class__._apply_bounds(cmd, __class__.TiltBounds)
-
-    def _apply_bounds(input, bounds):
-        if input < bounds[0]:
-            input = bounds[0]
-        if input > bounds[1]:
-            input = bounds[1]
-        return input
-
-    def increment_pan(self, delta):
-        self.command_pan(self.pan + delta)
-
-    def increment_tilt(self, delta):
-        self.command_tilt(self.tilt + delta)
-
-
     def center(self):
-        return self.floor_intersection(self.pan, self.tilt)
+        return self.floor_intersection(self.pantilt.get_pan(), self.pantilt.get_tilt())
 
     # The math isn't right here... but for an approximation it's ok.
     def floor_intersection(self, xangle, yangle):
@@ -105,10 +104,11 @@ class Camera():
         return (x, y)
     
     def projection_points(self):
-        tiltMin = self.tilt - __class__.vfov/2
-        tiltMax = self.tilt + __class__.vfov/2
-        panMin = self.pan - __class__.hfov/2
-        panMax = self.pan + __class__.hfov/2
+        pan, tilt = self.pantilt.get_pan(), self.pantilt.get_tilt()
+        tiltMin = tilt - __class__.vfov/2
+        tiltMax = tilt + __class__.vfov/2
+        panMin = pan - __class__.hfov/2
+        panMax = pan + __class__.hfov/2
 
         return np.float32([
             self.floor_intersection(panMin, tiltMin),  
@@ -138,7 +138,7 @@ class Camera():
 
 
 class Simulation():
-    def __init__(self, room=Room(), camera=Camera(), floorSrc=src("floor1.jpg")):
+    def __init__(self, room, camera, floorSrc=src("floor1.jpg")):
         self.room=room
         self.camera=camera
         self.lazerOn = False
@@ -163,6 +163,7 @@ class Simulation():
         invMatrix = np.linalg.inv(matrix)
         self.floor = self.floortexture.copy()
 
+
         if self.lazerOn:
             # Compute lazer position using matrix equation in https://docs.opencv.org/4.x/da/d54/group__imgproc__transform.html.
             lx, ly = Camera.imageSize[0]//2, Camera.imageSize[1]//2
@@ -179,7 +180,7 @@ class Simulation():
             c.draw(self.floor)
 
 
-        # print('theta: {:.1f}, phi: {:.1f}'.format(180*self.camera.theta/np.pi, 180*self.camera.phi/np.pi))
+        # print('pan: {:.1f}, tilt: {:.1f}'.format(self.camera.pantilt.get_pan(), self.camera.pantilt.get_tilt()))
 
         result = self.camera.take_frame(self.floor, matrix)
         
@@ -196,14 +197,21 @@ class Simulation():
 
 # Manual Control
 if __name__ == "__main__":
+    from controller.pantilt import PanTilt, ServoControl
+
+    panCtl = ServoControl(Servo(0, PanBounds[0], PanBounds[1]))
+    tiltCtl = ServoControl(Servo((TiltBounds[0] + TiltBounds[1])/2, TiltBounds[0], TiltBounds[1]))
+    pantilt = PanTilt(panCtl, tiltCtl)
+
     room = Room()
-    camera = Camera()
+    camera = Camera(pantilt)
     sim = Simulation(room=room, camera=camera)
     sim.add_cat(Cat(400,400))
 
     while True:
         
         frame = sim.update()
+        pantilt.update(0.01)
         cv.imshow('Camera', frame)
 
         pressed = cv.waitKey(10)
@@ -218,17 +226,18 @@ if __name__ == "__main__":
 
 
         if pressed is UP:
-            camera.increment_tilt(1)
+            pantilt.increment_tilt(1)
         elif pressed is DOWN:
-            camera.increment_tilt(-1)
+            pantilt.increment_tilt(-1)
         elif pressed is LEFT:
-            camera.increment_pan(-1)
+            pantilt.increment_pan(-1)
         elif pressed is RIGHT:
-            camera.increment_pan(1)
+            pantilt.increment_pan(1)
         else:
             exit(0)
 
-        print("center", camera.center())
-        print("points", camera.projection_points())
+        # print("pantilt", pantilt.get_pan(), pantilt.get_tilt(), pantilt.get_pan_boundary())
+        # print("center", camera.center())
+        # print("points", camera.projection_points())
 
 

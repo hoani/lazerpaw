@@ -1,15 +1,17 @@
 from controller.vision import ThresholdProcessor
+from controller.pantilt import PanTilt, ServoControl
 import cv2 as cv
 import numpy as np
 import server.server as server
 from hardware.camera import Camera
-from hardware.servo import PanTilt
+from hardware.servo import YawServo, PitchServo, Factory
 from hardware.lazer import Lazer
 from hardware.button import Button
 from hardware.led import Status
 import time
 import subprocess
 import controller.commands as cmds
+
 
 def do_shutdown():
     start = time.time()
@@ -36,13 +38,17 @@ def do_shutdown():
 if __name__ == "__main__":
     serverThread = server.start()
 
-    pantilt = PanTilt()
+    factory = Factory()
+    panCtl = ServoControl(YawServo(factory))
+    tiltCtl = ServoControl(PitchServo(factory))
+    pantilt = PanTilt(panCtl, tiltCtl)
+
     camera = Camera()
     lazer = Lazer()
     button = Button()
     led = Status()
     
-    c = cmds.ControlRoutine(pantilt.get_pan(), pantilt.get_tilt(), pantilt.get_pan_boundary(), pantilt.get_tilt_boundary())
+    c = cmds.ControlRoutine(pantilt)
     server.set_start_cb(c.start)
     server.set_stop_cb(c.stop)
 
@@ -100,9 +106,6 @@ if __name__ == "__main__":
         if ctl is not None:
             state = 'Running'
             lazer.set(ctl.lazer())
-
-            pantilt.pan(ctl.yaw())
-            pantilt.tilt(ctl.pitch())
         else:
             if manual.get_enabled():
                 state = 'Manual'

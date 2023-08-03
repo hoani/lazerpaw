@@ -3,6 +3,9 @@ from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
 import numpy as np
 
+def Factory():
+    return PiGPIOFactory()
+
 def YawServo(factory):
     return AngularServo(
         18, 
@@ -23,92 +26,32 @@ def PitchServo(factory):
         max_pulse_width=1.5/1000,
         pin_factory=factory)
 
-class Control:
-    def __init__(self, servo: AngularServo, slewrate = 180/2):
-        self.servo = servo
-        self.slewrate = slewrate # deg/s
-        self.target = self.servo.angle
-
-    def angle(self, angle):
-        if angle < self.servo.min_angle:
-            angle = self.servo.min_angle
-        if angle > self.servo.max_angle:
-            angle = self.servo.max_angle
-
-        self.target = angle
-
-    def increment(self, delta):
-        self.angle(self.target + delta)
-
-    def update(self, dt):
-        slew = self.slewrate * dt
-        delta = self.target - self.servo.angle
-        if delta != 0:
-            if np.abs(delta) < slew:
-                self.servo.angle = self.target
-            else:
-                self.servo.angle += np.sign(delta) * slew
-        else:
-            self.servo.angle = self.target
-
-    def boundary(self):
-        return (self.servo.min_angle, self.servo.max_angle)
-
-class PanTilt:
-    def __init__(self, slewrate = 180/2):
-        factory = PiGPIOFactory()
-        self.yaw = Control(YawServo(factory), slewrate)
-        self.pitch = Control(PitchServo(factory), slewrate)
-
-    def update(self, dt):
-        self.yaw.update(dt)
-        self.pitch.update(dt)
-
-    def pan(self, angle):
-        self.yaw.angle(angle)
-
-    def tilt(self, angle):
-        self.pitch.angle(angle)
-
-    def get_pan(self):
-        return self.yaw.servo.angle
-
-    def get_tilt(self):
-        return self.pitch.servo.angle
-
-    def increment_pan(self, delta):
-        self.yaw.increment(delta)
-
-    def increment_tilt(self, delta):
-        self.pitch.increment(delta)
-
-    def get_pan_boundary(self):
-        return self.yaw.boundary()
-
-    def get_tilt_boundary(self):
-        return self.pitch.boundary()
-
 if __name__ == "__main__":
-    pantilt = PanTilt()
+    from ..controller.pantilt import PanTilt, ServoControl
+
+    factory = PiGPIOFactory()
+    yawCtl = ServoControl(YawServo(factory))
+    pitchCtl = ServoControl(PitchServo(factory))
+    pantilt = PanTilt(yawCtl, pitchCtl)
 
     deltaT = 0.2
     deltaAngle = 0.125
     sleep(1)
 
     while True:
-        while pantilt.yaw.servo.angle < pantilt.yaw.servo.max_angle - 0.5:
+        while pantilt.get_pan() < pantilt.get_pan_boundary()[1] - 0.5:
             pantilt.increment_pan(deltaAngle)
             pantilt.update(deltaT)
             sleep(deltaT)
-        while pantilt.pitch.servo.angle < pantilt.pitch.servo.max_angle - 0.5:
+        while pantilt.get_tilt() < pantilt.get_tilt_boundary()[1] - 0.5:
             pantilt.increment_tilt(deltaAngle)
             pantilt.update(deltaT)
             sleep(deltaT)
-        while pantilt.yaw.servo.angle > pantilt.yaw.servo.min_angle + 0.5:
+        while pantilt.get_pan() > pantilt.get_pan_boundary()[0] + 0.5:
             pantilt.increment_pan(-deltaAngle)
             pantilt.update(deltaT)
             sleep(deltaT)
-        while pantilt.pitch.servo.angle > pantilt.pitch.servo.min_angle + 0.5:
+        while pantilt.get_tilt() > pantilt.get_tilt_boundary()[0] + 0.5:
             pantilt.increment_tilt(-deltaAngle)
             pantilt.update(deltaT)
             sleep(deltaT)

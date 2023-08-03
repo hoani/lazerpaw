@@ -5,9 +5,9 @@ import time
 
 class ControlRoutine:
     ExecutionPeriod = 120 
-    def __init__(self, pan, tilt, pan_boundary, tilt_boundary):
+    def __init__(self, pantilt):
         self.mu = Lock()
-        self.c = Controller(pan, tilt, pan_boundary, tilt_boundary)
+        self.c = Controller(pantilt)
         self.running = False
         self.execution_start = time.time()
 
