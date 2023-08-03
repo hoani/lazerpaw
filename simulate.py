@@ -34,7 +34,7 @@ if __name__ == "__main__":
     shutdown = cmds.Shutdown()
     server.set_shutdown_cb(shutdown.set)
 
-    threshold = ThresholdProcessor()
+    threshold = ThresholdProcessor(pantilt.get_pan_boundary(), pantilt.get_tilt_boundary())
     server.set_threshold_cb(threshold.set_threshold)
 
     manual = cmds.ManualMode(camera.hfov, camera.vfov)
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
         server.update_video(frame)
 
-        masked, cropped = threshold.process_frame(frame, pantilt)
+        masked, cropped = threshold.process_frame(frame, pantilt.get_pan(), pantilt.get_tilt())
 
         
 

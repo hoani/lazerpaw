@@ -8,7 +8,7 @@ class Controller:
         self.dy = 0
         self.ddx = 0
         self.ddy = 0
-        self.kf = 1 # Friction
+        self.kf = 1.5 # Friction
         self.kr = 20 # Repulsion
         self.lazerCooldown = 10
 
