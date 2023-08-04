@@ -58,7 +58,7 @@ if __name__ == "__main__":
     shutdown = cmds.Shutdown()
     server.set_shutdown_cb(shutdown.set)
 
-    threshold = ThresholdProcessor()
+    threshold = ThresholdProcessor(pantilt.get_pan_boundary(), pantilt.get_tilt_boundary())
     server.set_threshold_cb(threshold.set_threshold)
 
     manual = cmds.ManualMode(camera.hfov*180/np.pi, camera.vfov*180/np.pi)
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     last_s = time.time()
     i = 0
     state = "Idle"
-    for capture in camera.frame():
+    for frame in camera.frame():
         if shutdown.get():
             do_shutdown()
             break
@@ -82,8 +82,8 @@ if __name__ == "__main__":
             dt = now_s - last_s
             last_s = now_s
 
-        masked, cropped = threshold.process_frame(capture)
-        server.update_video(capture)
+        masked, cropped = threshold.process_frame(frame, pantilt.get_pan(), pantilt.get_tilt())
+        server.update_video(frame)
         server.update_proc(masked)
         
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
         print(
             'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
             'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
-            'Target - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.yaw.target, pantilt.pitch.target)
+            'Target - pan: {:.1f}, tilt: {:.1f} '.format(pantilt._pan.target, pantilt._tilt.target)
         )
     
     camera.release()

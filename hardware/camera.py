@@ -15,7 +15,6 @@ class Camera():
     def frame(self):
         while True:
             isTrue, frame = self.cap.read()
-            frame = cv.flip(frame, -1)
             if not isTrue:
                 break
             yield(frame)
