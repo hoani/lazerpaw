@@ -36,6 +36,13 @@ def do_shutdown():
 
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Lazerpaw cat lazer chase game')
+    parser.add_argument("--debug", action='store_true')
+    args = parser.parse_args()
+
+
     serverThread = server.start()
 
     factory = Factory()
@@ -85,22 +92,6 @@ if __name__ == "__main__":
         masked, cropped = threshold.process_frame(frame, pantilt.get_pan(), pantilt.get_tilt())
         server.update_video(frame)
         server.update_proc(masked)
-        
-
-        
-        # blank = np.zeros(masked.shape[:2], dtype='uint8')
-        # cmasked = blank.copy()
-        
-        # ## Crop image to radius.
-        # srcw, srch = masked.shape[1], masked.shape[0]
-        # dstw, dsth = cropped.shape[1], cropped.shape[0]
-
-        # x0, y0 = int((srcw-dstw)/2), int((srch-dsth)/2)
-        # x1, y1 = int(x0 + dstw), int(y0 +dsth)
-        # cmasked[ y0:y1, x0:x1] = cropped
-        # merged = cv.merge([blank, cmasked, masked])
-
-        # server.update_proc(merged)
 
         ctl = c.update(cropped, dt)
         if ctl is not None:
@@ -145,12 +136,13 @@ if __name__ == "__main__":
                 c.start()
             else:
                 c.stop()
-                
-        print(
-            'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
-            'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
-            'Target - pan: {:.1f}, tilt: {:.1f} '.format(pantilt._pan.target, pantilt._tilt.target)
-        )
+
+        if args.debug is True: 
+            print(
+                'LazerPaw - dt: {:.1f}ms, fps: {:.1f}\n'.format(dt*1000.0, 1/dt) +
+                'Pos - pan: {:.1f}, tilt: {:.1f} '.format(pantilt.get_pan(), pantilt.get_tilt()) +
+                'Target - pan: {:.1f}, tilt: {:.1f} '.format(pantilt._pan.target, pantilt._tilt.target)
+            )
     
     camera.release()
     exit(0)
