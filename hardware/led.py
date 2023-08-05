@@ -27,18 +27,16 @@ class LEDs:
             baudrate = 115200,
             timeout=1
         )
-        time.sleep(0.25) # Wait a little bit before sending the initialize packet.
-        self.ser.write(b'I08\n')
 
     def hsv(self, i, vals):
-        result = 'H{:02x}'.format(i)
+        result = 'I08\nH{:02x}'.format(i)
         for val in vals:
             result += val.str()
         result += '\n'
         self.ser.write(bytes(result, 'utf-8'))
 
     def rgb(self, i, vals):
-        result = 'R{:02x}'.format(i)
+        result = 'I08\nR{:02x}'.format(i)
         for val in vals:
             result += val.rgb()
         result += '\n'
