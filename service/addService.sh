@@ -12,4 +12,6 @@ StandardError=null
 Restart=always
 
 [Install]
-WantedBy=default.target' > $HOME/.config/systemd/user/chatbox.service
+WantedBy=default.target' > $HOME/.config/systemd/user/lazerpaw.service
+
+systemctl --user daemon-reload
