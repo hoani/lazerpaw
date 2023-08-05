@@ -27,6 +27,7 @@ class LEDs:
             baudrate = 115200,
             timeout=1
         )
+        time.sleep(0.25) # Wait a little bit before sending the initialize packet.
         self.ser.write(b'I08\n')
 
     def hsv(self, i, vals):
