@@ -1,19 +1,65 @@
 # lazerpaw
-Cat lazer chase project
+Cat lazer chase project.
 
-# Machine setup
 
-## MacOS
 
-This project can be run with the simulator on macos.
+# Running
+
+`lazerpaw` is designed to run on a Raspberry Pi Zero W2.
+
+It can run on a Rapsberry Pi Zero W, but will require a reduced frame rate to deal with the image processing load; which leads to jumpier control.
+
+## Raspberry Pi
+
+Se below for instructions on installing dependencies.
+
+Run with:
+```
+python3 -m lazerpaw
+```
+
+### Running as a service
+
+You can set `lazerpaw` as a service so that it runs automatically. To configure `lazerpaw` as a service:
+```
+./service/addService.sh
+```
+
+And then run it as a `user` service:
+```
+systemctl --user start lazerpaw
+```
+
+To run on boot:
+```
+systemctl --user enable lazerpaw
+```
+
+To inspect logs:
+```
+journalctl --user -u lazerpaw --since "10 minutes ago"
+```
+
+## Running the Simulator
+
+The simulator should work on any operating system. I run it on a macbook.
+
+Install the following dependencies:
 
 ```
 python3 -m pip install flask opencv-python numpy
 ```
 
-## Rapsberry Pi Zero W
+To run the simulator:
 
-This project is written to be run on a Raspberry Pi Zero W. 
+```
+python3 -m simulate
+```
+
+
+# Machine setup
+
+## Rapsberry Pi Zero W2
 
 Run the following to install dependencies:
 
