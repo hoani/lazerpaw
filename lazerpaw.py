@@ -90,7 +90,9 @@ if __name__ == "__main__":
             last_s = now_s
 
         masked, cropped = threshold.process_frame(frame, pantilt.get_pan(), pantilt.get_tilt())
-        draw_crosshair(frame)
+        if lazerTester.get():
+            draw_crosshair(frame)
+            
         server.update_video(frame)
         server.update_proc(masked)
 
