@@ -90,7 +90,8 @@ if __name__ == "__main__":
             last_s = now_s
 
         masked, cropped = threshold.process_frame(frame, pantilt.get_pan(), pantilt.get_tilt())
-        server.update_video(draw_crosshair(frame))
+        draw_crosshair(frame)
+        server.update_video(frame)
         server.update_proc(masked)
 
         ctl = c.update(cropped, dt)
