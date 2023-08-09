@@ -127,7 +127,7 @@ def generate_video_frame_single(q):
             
 def start():
     def run():
-        app.run(host='0.0.0.0', port =80, debug=False, threaded=True)
+        app.run(host='0.0.0.0', port =8000, debug=False, threaded=True)
     flaskThread = Thread(target=run, daemon=True)
     flaskThread.start()
     return flaskThread
