@@ -1,5 +1,5 @@
 from simulator.simulator import Room, Camera, Cat, Simulation, Servo, PanBounds, TiltBounds
-from controller.vision import ThresholdProcessor
+from controller.vision import ThresholdProcessor, draw_crosshair
 from controller.pantilt import PanTilt, ServoControl
 import controller.commands as cmds
 import cv2 as cv
@@ -47,6 +47,8 @@ if __name__ == "__main__":
         frame = sim.update()
         frame = cv.resize(frame, (640,480))
 
+        draw_crosshair(frame)
+        
         server.update_video(frame)
 
         masked, cropped = threshold.process_frame(frame, pantilt.get_pan(), pantilt.get_tilt())

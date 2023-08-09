@@ -4,9 +4,9 @@ from threading import Lock
 import time
 
 def draw_crosshair(frame):
-    xc, yc = frame.shape[1]/2, frame.shape[0]/2
-    c = 122,255,122
-    cv.rectangle(frame, (xc-2, yc-2), (xc+1, yc+1), c, thickness=1)
+    xc, yc = int(frame.shape[1]/2), int(frame.shape[0]/2)
+    c = 0,255,122
+    cv.rectangle(frame, (xc-3, yc-3), (xc+2, yc+2), c, thickness=1)
 
 class ThresholdProcessor:
     def __init__(self, panBoundary, tiltBoundary, fov = 48.8):
