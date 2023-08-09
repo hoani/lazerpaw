@@ -75,6 +75,12 @@
                         <input class="form-check-input" type="checkbox" role="switch" id="manualSwitch">
                         <label class="form-check-label" for="manualSwitch">Manual</label>
                     </div>
+                    <div class="state">
+                        <span id="state_data">UNKNOWN</span>
+                    </div>
+                    <div class="remaining">
+                        <span id="remaining_data"></span>
+                    </div>
                     <div class="slider">
                         <label for="threshold" class="form-label">Set Threshold</label>
                         <input type="range" class="form-range" min="10" max="245" id="threshold">
@@ -83,11 +89,9 @@
             </div>
         </div>
         <div class="row">
-            <h3>
-                Time: <span id="time_data">???</span>
-                State: <span id="state_data">UNKNOWN</span>
-                <span id="remaining_data"></span>
-            </h3>
+            <h4>
+                <span id="time_data">???</span>
+            </h4>
         </div>
     </div>
     <hr>
@@ -110,10 +114,10 @@
                 time_data.textContent = data["time"];
             }
             if (data["state"] != false) {
-                state_data.textContent = data["state"];
+                state_data.textContent = data["state"].toUpperCase();
             }
             if (typeof data["remaining"] == 'number') {
-                remaining_data.textContent = "remaining:" + data["remaining"].toFixed(2);
+                remaining_data.textContent = data["remaining"].toFixed(2);
             } else {
                 remaining_data.textContent = "";
             }

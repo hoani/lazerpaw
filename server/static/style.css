@@ -1,7 +1,11 @@
 body {
     background: #121115;
-    color: #6299f3;
+    color: #dbe4f2;
     text-align: center;
+}
+
+h1 {
+    color: #6299f3;
 }
 
 .full-width {
@@ -10,6 +14,7 @@ body {
 
 .video-container {
     position: relative;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 
 .slider {
@@ -27,6 +32,30 @@ body {
     z-index: 1;
     top: 2%;
     left: 4%;
+}
+
+.state {
+    display: inline-block;
+    position: absolute;
+    text-align: center;
+    z-index: 1;
+    width: 100%;
+    top: 2%;
+    left: 0%;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+.remaining {
+    display: inline-block;
+    position: absolute;
+    text-align: right;
+    z-index: 1;
+    width: 95%;
+    top: 2%;
+    left: 0%;
+    font-family: 'Courier New', Courier, monospace;
+    pointer-events: none;
 }
 
 img #proc-img {
