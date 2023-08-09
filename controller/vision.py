@@ -3,6 +3,11 @@ import numpy as np
 from threading import Lock
 import time
 
+def draw_crosshair(frame):
+    xc, yc = masked.shape[1]/2, masked.shape[0]/2
+    c = 122,255,122
+    return cv.rectangle(frame, (xc-2, yx-2), (xc+1, yc+1), c, thickness=1)
+
 class ThresholdProcessor:
     def __init__(self, panBoundary, tiltBoundary, fov = 48.8):
         self.mu = Lock()

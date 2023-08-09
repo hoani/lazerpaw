@@ -1,4 +1,4 @@
-from controller.vision import ThresholdProcessor
+from controller.vision import ThresholdProcessor, draw_crosshair
 from controller.pantilt import PanTilt, ServoControl
 import cv2 as cv
 import numpy as np
@@ -90,7 +90,7 @@ if __name__ == "__main__":
             last_s = now_s
 
         masked, cropped = threshold.process_frame(frame, pantilt.get_pan(), pantilt.get_tilt())
-        server.update_video(frame)
+        server.update_video(draw_crosshair(frame))
         server.update_proc(masked)
 
         ctl = c.update(cropped, dt)
