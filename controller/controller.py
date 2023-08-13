@@ -2,6 +2,7 @@ import numpy as np
 import cv2 as cv
 
 class Controller:
+    MaxRate = 20 # deg/s
     def __init__(self, pantilt):
         self.pantilt = pantilt
         self.dx = 0
@@ -43,7 +44,14 @@ class Controller:
         ddx = self.kr * fx - self.dx * self.kf
         ddy = self.kr * fy - self.dy * self.kf
         dx = self.dx + dt * (self.ddx + ddx)/2 
-        dy = self.dy + dt * (self.ddy + ddy)/2 
+        dy = self.dy + dt * (self.ddy + ddy)/2
+
+        # Limit servo rates so we don't get too much integral windup.
+        if np.abs(dx) > Controller.MaxRate:
+            dx = np.sign(dx) * Controller.MaxRate
+        if np.abs(dy) > Controller.MaxRate:
+            dy = np.sign(dy) * Controller.MaxRate
+
         self.ddx = ddx
         self.ddy = ddy
 

@@ -16,12 +16,22 @@ class ThresholdProcessor:
         self.fov = fov
         self.xb0, self.xb1 = panBoundary[0], panBoundary[1]
         self.yb0, self.yb1 = tiltBoundary[0], tiltBoundary[1]
+        self.mask_x = None
+        self.mask_y = None
 
     def apply_fov_boundary(self, masked, pan, tilt):
+        if self.mask_x is None:
+            self.mask_x = -pan
+            self.mask_y = tilt
+        else:
+            # This basic filter is added because often the camera frame lags the servo commanded position.
+            self.mask_x = -0.5 * pan + 0.5 * self.mask_x
+            self.mask_y = 0.5 * tilt + 0.5 * self.mask_y
+
         w, h = masked.shape[1], masked.shape[0]
         ppdeg = w/self.fov
         xc, yc = w/2, h/2
-        x, y = -pan, tilt
+        x, y = self.mask_x, self.mask_y
         x0, x1  = xc + (self.xb0 - x)*ppdeg, xc + (self.xb1 - x)*ppdeg
         y0, y1 = yc + (self.yb0 - y)*ppdeg, yc + (self.yb1 - y)*ppdeg
 
