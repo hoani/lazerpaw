@@ -76,6 +76,10 @@ class Status:
         self.leds.show()
 
     def update_shutdown(self, frac):
+        if frac > 1:
+            frac = 1.0
+        if frac < 0.05:
+            frac = 0.0
         hue = int(230)
         sat = int(0xff*(frac))
         vals = []
