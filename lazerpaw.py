@@ -31,6 +31,7 @@ def do_shutdown():
         "remaining": 0
     }
     server.update_data(data)
+    led.update_shutdown(0)
     time.sleep(0.05)
     subprocess.run(["sudo", "shutdown", "-h", "now"]) 
 
