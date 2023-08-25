@@ -10,7 +10,7 @@ class Controller:
         self.ddx = 0
         self.ddy = 0
         self.kf = 1.5 # Friction
-        self.kr = 20 # Repulsion
+        self.kr = 40 # Repulsion
         self.lazerCooldown = 10
 
         self.lazerOn = False
@@ -97,9 +97,9 @@ class Controller:
                     fy = 0
                     ## centered elements and elements outside of the cropped radius have zero impact
                     if x != 0 and d < radius:
-                        fx = -1/(x*d)
+                        fx = -x/(d*d*d)
                     if y != 0 and d < radius:
-                        fy = -1/(y*d)
+                        fy = -y/(d*d*d)
                     self.d[i].append(d)
                     self.fx[i].append(fx)
                     self.fy[i].append(fy)
