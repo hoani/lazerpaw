@@ -14,8 +14,8 @@ class ThresholdProcessor:
         self.threshold = 95
         self.radius = 25
         self.fov = fov
-        self.xb0, self.xb1 = panBoundary[0], panBoundary[1]
-        self.yb0, self.yb1 = tiltBoundary[0], tiltBoundary[1]
+        self.xb0, self.xb1 = panBoundary[0]-5, panBoundary[1]+5
+        self.yb0, self.yb1 = tiltBoundary[0]-5, tiltBoundary[1]+5
         self.mask_x = None
         self.mask_y = None
 
