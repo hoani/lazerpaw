@@ -92,6 +92,12 @@ class Status:
         self.leds.hsv(0, vals)
         self.leds.show()
 
+    def clear(self):
+        runVal = HSV(0x00, 0x00, 0x00)
+        vals = [runVal, runVal, runVal, runVal, runVal, runVal, runVal, runVal]
+        self.leds.hsv(0, vals)
+        self.leds.show()
+
 
 
 if __name__ == "__main__":
