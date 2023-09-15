@@ -1,5 +1,5 @@
 import numpy as np
-import cv2 as cv
+import random
 
 class Controller:
     MaxRate = 20 # deg/s
@@ -11,6 +11,7 @@ class Controller:
         self.ddy = 0
         self.kf = 1.5 # Friction
         self.kr = 40 # Repulsion
+        self.kj = 20 # Jitter
         self.lazerCooldown = 10
 
         self.lazerOn = False
@@ -41,9 +42,12 @@ class Controller:
                     fx += self.fx[i][j]
                     fy += self.fy[i][j]
         
-        ddx = self.kr * fx - self.dx * self.kf
-        ddy = self.kr * fy - self.dy * self.kf
-        dx = self.dx + dt * (self.ddx + ddx)/2 
+        # Determine jitter.
+        jx, jy = (random.random() - 0.5) * self.kj, (random.random() - 0.5) * self.kj
+
+        ddx = self.kr * fx + jx - self.dx * self.kf
+        ddy = self.kr * fy + jy - self.dy * self.kf
+        dx = self.dx + dt * (self.ddx + ddx)/2
         dy = self.dy + dt * (self.ddy + ddy)/2
 
         # Limit servo rates so we don't get too much integral windup.
