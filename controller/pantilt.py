@@ -32,6 +32,9 @@ class ServoControl:
         else:
             self.servo.angle = self.target
 
+    def disable(self):
+        self.servo.angle = None
+
     def boundary(self):
         return (self.servo.min_angle, self.servo.max_angle)
 
@@ -43,6 +46,10 @@ class PanTilt:
     def update(self, dt):
         self._pan.update(dt)
         self._tilt.update(dt)
+
+    def disable(self):
+        self._pan.disable()
+        self._tilt.disable()
 
     def pan(self, angle):
         self._pan.set_angle(angle)

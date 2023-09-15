@@ -110,7 +110,10 @@ if __name__ == "__main__":
                 state = 'Idle'
             lazer.set(lazerTester.get())
 
-        pantilt.update(dt)
+        if state != 'Idle':
+            pantilt.update(dt)
+        else:
+            pantilt.disable(dt)
 
         data = {
             "time": time.strftime("%H:%M:%S"), 

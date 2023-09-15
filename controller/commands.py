@@ -68,6 +68,7 @@ class LazerTester:
         self.mu.release()
 
 class ManualMode:
+    Timeout = 60.0 # Manual mode expires if there has been no activity for 60 seconds.
     def __init__(self, pitchRange, yawRange):
         self.mu = Lock()
         self.enabled = False
@@ -75,10 +76,12 @@ class ManualMode:
         self.deltaYaw = 0
         self.pitchRange = pitchRange
         self.yawRange = yawRange
+        self.lastUpdated = time.time()
 
     def set_enabled(self, enabled):
         self.mu.acquire()
         self.enabled = enabled
+        self.lastUpdated = time.time()
         self.mu.release()
     
     def set_cmd(self, x, y, w, h):
@@ -92,12 +95,17 @@ class ManualMode:
         deltaYaw = self.yawRange*(-(x - w/2))/w
         print("setting delta pitch", deltaPitch, "delta yaw", deltaYaw)
         self.mu.acquire()
+        self.lastUpdated = time.time()
         self.deltaPitch = deltaPitch
         self.deltaYaw = deltaYaw
         self.mu.release()
 
     def get_enabled(self):
+        now = time.time()
         self.mu.acquire()
+        if now - self.lastUpdated > __class__.Timeout:
+            self.enabled = False
+
         result = self.enabled
         self.mu.release()
         return result
