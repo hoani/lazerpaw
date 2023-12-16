@@ -19,24 +19,40 @@ shutdownCb = lambda _: _
 thresholdCb = lambda _: _
 manualEnCb = lambda _: _
 manualCmdCb = lambda _a, _b, _c, _d: None
+specialCb = lambda _: _
 
-@app.route('/')
+
+@app.route("/")
 def index():
-    return render_template('index.html')
-    
-@app.route('/video_feed')
+    return render_template("index.html")
+
+
+@app.route("/special")
+def special():
+    return render_template("special.html")
+
+
+@app.route("/video_feed")
 def video_feed():
     if "once" in request.args.keys():
-        return Response(generate_video_frame_once(videoQueue),mimetype='image/jpeg; boundary=frame')
-    return Response(generate_video_frame(videoQueue),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+        return Response(
+            generate_video_frame_once(videoQueue), mimetype="image/jpeg; boundary=frame"
+        )
+    return Response(
+        generate_video_frame(videoQueue),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
+    )
 
-@app.route('/proc_feed')
+
+@app.route("/proc_feed")
 def proc_feed():
-    return Response(generate_video_frame(procQueue),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(
+        generate_video_frame(procQueue),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
+    )
 
-@app.route('/button')
+
+@app.route("/button")
 def button():
     try:
         if "start" in request.args.keys():
@@ -55,11 +71,15 @@ def button():
         if "shutdown" in request.args.keys():
             print("shutdown triggered")
             shutdownCb()
+        if "special" in request.args.keys():
+            print("special triggered")
+            specialCb()
     except:
         pass
     return ""
 
-@app.route('/videoclick', methods=["POST"])
+
+@app.route("/videoclick", methods=["POST"])
 def video_click():
     print(request.form)
     x = request.form.get("x", type=int)
@@ -70,9 +90,10 @@ def video_click():
     manualCmdCb(x, y, w, h)
     return ""
 
-@app.route('/manual', methods=["POST"])
+
+@app.route("/manual", methods=["POST"])
 def manual_click():
-    if request.form.get("manual") == 'true':
+    if request.form.get("manual") == "true":
         manualEnCb(True)
         print("manual mode")
     else:
@@ -80,7 +101,8 @@ def manual_click():
         print("manual disabled")
     return ""
 
-@app.route('/threshold', methods=["POST"])
+
+@app.route("/threshold", methods=["POST"])
 def threshold_click():
     try:
         value = request.form.get("value")
@@ -90,26 +112,27 @@ def threshold_click():
         pass
     return ""
 
-@app.route('/data_feed')
-def data_feed():
-    return Response(generate_data_feed(dataQueue),
-                    mimetype='text/plain')
 
-            
+@app.route("/data_feed")
+def data_feed():
+    return Response(generate_data_feed(dataQueue), mimetype="text/plain")
+
+
 def generate_data_feed(q):
     while True:
         data = q.get(block=True, timeout=None)
-        yield(data)
-            
+        yield (data)
+
+
 def generate_video_frame(q):
     while True:
         jpegBytes = generate_video_frame_single(q)
         if jpegBytes is not None:
-            yield(b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + 
-                jpegBytes + 
-                b'\r\n')
-            
+            yield (
+                b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + jpegBytes + b"\r\n"
+            )
+
+
 def generate_video_frame_once(q):
     frame = q.get(block=True, timeout=None)
     frame = cv.flip(frame, -1)
@@ -117,29 +140,36 @@ def generate_video_frame_once(q):
     if ok:
         return frameJpeg.tobytes()
     return None
-            
+
+
 def generate_video_frame_single(q):
     frame = q.get(block=True, timeout=None)
     ok, frameJpeg = cv.imencode(".jpeg", frame)
     if ok:
         return frameJpeg.tobytes()
     return None
-            
+
+
 def start():
     def run():
-        app.run(host='0.0.0.0', port =8000, debug=False, threaded=True)
+        app.run(host="0.0.0.0", port=8000, debug=False, threaded=True)
+
     flaskThread = Thread(target=run, daemon=True)
     flaskThread.start()
     return flaskThread
 
+
 def update_video(frame):
     update_queue(videoQueue, frame.copy())
+
 
 def update_proc(frame):
     update_queue(procQueue, frame.copy())
 
+
 def update_data(data):
-    update_queue(dataQueue, json.dumps(data)+"\n")
+    update_queue(dataQueue, json.dumps(data) + "\n")
+
 
 def update_queue(queue, item):
     try:
@@ -148,39 +178,49 @@ def update_queue(queue, item):
         pass
     queue.put(item)
 
-def set_start_cb(fn: Callable[[None],None]):
+
+def set_start_cb(fn: Callable[[None], None]):
     global startCb
     startCb = fn
 
-def set_stop_cb(fn: Callable[[None],None]):
+
+def set_stop_cb(fn: Callable[[None], None]):
     global stopCb
     stopCb = fn
 
-def set_lazer_tester_cb(fn: Callable[[bool],None]):
+
+def set_lazer_tester_cb(fn: Callable[[bool], None]):
     global lazerTesterCb
     lazerTesterCb = fn
 
-def set_shutdown_cb(fn: Callable[[None],None]):
+
+def set_shutdown_cb(fn: Callable[[None], None]):
     global shutdownCb
     shutdownCb = fn
 
-def set_threshold_cb(fn: Callable[[int],None]):
+
+def set_threshold_cb(fn: Callable[[int], None]):
     global thresholdCb
     thresholdCb = fn
 
-def set_manual_enabled_cb(fn: Callable[[bool],None]):
+
+def set_manual_enabled_cb(fn: Callable[[bool], None]):
     global manualEnCb
     manualEnCb = fn
 
-def set_manual_command_cb(fn: Callable[[int, int, int, int],None]):
+
+def set_manual_command_cb(fn: Callable[[int, int, int, int], None]):
     global manualCmdCb
     manualCmdCb = fn
 
 
-if __name__ == '__main__':
+def set_special_cb(fn: Callable[[None], None]):
+    global specialCb
+    specialCb = fn
 
+
+if __name__ == "__main__":
     flaskThread = start()
-    
 
     cap = cv.VideoCapture(0)
     try:
@@ -195,9 +235,9 @@ if __name__ == '__main__':
 
             gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
             start = time.time()
-            gray = cv.resize(gray, (80,60), cv.INTER_LINEAR)
+            gray = cv.resize(gray, (80, 60), cv.INTER_LINEAR)
             _, masked = cv.threshold(gray, 100, 255, cv.THRESH_BINARY)
-            print("deltaT: ", (time.time() - start)*1000)
+            print("deltaT: ", (time.time() - start) * 1000)
             update_proc(masked)
 
             current_time = time.strftime("%H:%M:%S")
