@@ -76,8 +76,9 @@ if __name__ == "__main__":
             sim.lazerOn = ctl.lazer()
         else:
             if special.get_enabled():
-                dx, dy = special.get_deltas(pantilt.get_pan(), pantilt.get_tilt())
-                pantilt.increment_pan(dx / 2)  # div 2 because pan bounds are half.
+                state = "Special"
+                dx, dy = special.get_deltas(pantilt.get_pan() * 2.5, pantilt.get_tilt())
+                pantilt.increment_pan(dx / 2)
                 pantilt.increment_tilt(dy)
                 sim.lazerOn = special.get_lazer()
             else:

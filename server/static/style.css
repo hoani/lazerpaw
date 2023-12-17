@@ -1,4 +1,15 @@
+html {
+    height: 100%;
+
+}
+
+
 body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+    vertical-align: middle;
     background: #121115;
     color: #dbe4f2;
     text-align: center;

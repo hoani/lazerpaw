@@ -130,12 +130,12 @@ class ManualMode:
 
 
 class SpecialMode:
-    TARGET_X = 40
+    TARGET_X = -40
     TARGET_Y = 40
-    MAX_DX = 1
-    MAX_DY = 1
-    ARRIVED_DX = 0.25
-    ARRIVED_DY = 0.25
+    MAX_DX = 0.5
+    MAX_DY = 0.5
+    ARRIVED_DX = 0.125
+    ARRIVED_DY = 0.125
     MODE_TIMEOUT = 3600  # One hour.
 
     def __init__(self):
@@ -169,7 +169,7 @@ class SpecialMode:
         dx = max(-__class__.MAX_DX, min(dx, __class__.MAX_DX))
         dy = max(-__class__.MAX_DY, min(dy, __class__.MAX_DY))
 
-        if dx < __class__.ARRIVED_DX and dy < __class__.ARRIVED_DY:
+        if abs(dx) < __class__.ARRIVED_DX and abs(dy) < __class__.ARRIVED_DY:
             self.arrived = True
 
         return dx, dy
