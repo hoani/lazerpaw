@@ -21,9 +21,9 @@ def PitchServo(factory):
         13, 
         initial_angle=10, 
         min_angle=5, 
-        max_angle=45, 
+        max_angle=50, 
         min_pulse_width=1.05/1000, 
-        max_pulse_width=1.5/1000,
+        max_pulse_width=1.75/1000,
         pin_factory=factory)
 
 if __name__ == "__main__":

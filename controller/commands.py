@@ -130,8 +130,8 @@ class ManualMode:
 
 
 class SpecialMode:
-    TARGET_X = -40
-    TARGET_Y = 40
+    TARGET_X = -29
+    TARGET_Y = 45
     MAX_DX = 0.5
     MAX_DY = 0.5
     ARRIVED_DX = 0.125
