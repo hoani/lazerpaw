@@ -120,7 +120,7 @@ if __name__ == "__main__":
         if state != "Idle":
             pantilt.update(dt)
         else:
-            pantilt.disable(dt)
+            pantilt.disable()
 
         data = {
             "time": time.strftime("%H:%M:%S"),

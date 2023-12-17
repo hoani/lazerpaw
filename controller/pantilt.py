@@ -6,6 +6,7 @@ class ServoControl:
         self.servo = servo
         self.slewrate = slewrate # deg/s
         self.target = self.servo.angle
+        self.last = self.servo.angle
 
     def set_angle(self, angle):
         if angle < self.servo.min_angle:
@@ -16,21 +17,23 @@ class ServoControl:
         self.target = angle
 
     def get_angle(self):
-        return self.servo.angle
+        return self.last
 
     def increment(self, delta):
         self.set_angle(self.target + delta)
 
     def update(self, dt):
         slew = self.slewrate * dt
-        delta = self.target - self.servo.angle
+        delta = self.target - self.last
         if delta != 0:
             if np.abs(delta) < slew:
-                self.servo.angle = self.target
+                self.last = self.target
             else:
-                self.servo.angle += np.sign(delta) * slew
+                self.last += np.sign(delta) * slew
         else:
-            self.servo.angle = self.target
+            self.last = self.target
+
+        self.servo.angle = self.last
 
     def disable(self):
         self.servo.angle = None
